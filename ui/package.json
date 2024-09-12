@@ -1,0 +1,26 @@
+{
+  "name": "@milaboratory/milaboratories.table.ui",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "watch": "vue-tsc && vite build --watch",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@milaboratory/milaboratories.table.model": "workspace:*",
+    "@milaboratory/sdk-ui": "catalog:",
+    "@milaboratory/sdk-vue": "catalog:",
+    "@milaboratory/platforma-uikit": "catalog:",
+    "@milaboratory/helpers": "catalog:",
+    "zod": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

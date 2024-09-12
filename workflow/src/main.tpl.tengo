@@ -1,0 +1,51 @@
+wf := import("@milaboratory/tengo-sdk:workflow")
+ll := import("@milaboratory/tengo-sdk:ll")
+exec := import("@milaboratory/tengo-sdk:exec")
+file := import("@milaboratory/tengo-sdk:file")
+
+wf.body(func(args) {
+	inputFasta := undefined
+	if !is_undefined(args.fastaFile) {
+		inputFasta = file.importFile(args.fastaFile).file
+	} else if !is_undefined(args.fastaData) {
+		fileName := "in.fa"
+		execWriteFile := exec.builder().
+			cmd("env").
+			writeFile(fileName, args.fastaData).
+			saveFile(fileName).
+			run()
+		inputFasta = execWriteFile.getFile(fileName)
+	} else {
+		ll.panic("expected to have either `fastaFile` or `fastaData`")
+	}
+
+	inputFastaName := "input.fasta"
+	alignmentsName := "alignments.vdjca"
+	execAlign := exec.builder().
+		addFile(inputFastaName, inputFasta).
+		cmd("mixcr").arg("align").
+		arg("--preset").arg("rna-seq").
+		arg("--species").arg("hsa").
+		arg(inputFastaName).
+		arg(alignmentsName).
+		saveFile(alignmentsName).
+		run()
+	alignmentsFile := execAlign.getFile(alignmentsName)
+
+	alignmentsPrettyName := "alignments.txt"
+	execAlignPretty := exec.builder().
+		addFile(alignmentsName, alignmentsFile).
+		cmd("mixcr").arg("exportAlignmentsPretty").
+		arg(alignmentsName).
+		arg(alignmentsPrettyName).
+		saveFile(alignmentsPrettyName).
+		run()
+	alignmentsPrettyFile := execAlignPretty.getFile(alignmentsPrettyName)
+
+	return {
+		outputs: {
+			data: file.exportFile(alignmentsPrettyFile)
+		},
+		exports: {}
+	}
+})

@@ -1,0 +1,18 @@
+{
+  "name": "@milaboratory/milaboratories.table.workflow",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Tengo-based template",
+  "scripts": {
+    "build": "rm -rf dist && pl-tengo check && pl-tengo build",
+    "format": "/usr/bin/env emacs --script ./format.el",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@milaboratory/tengo-template-builder": "catalog:",
+    "@milaboratory/tengo-sdk": "catalog:",
+    "@milaboratory/sdk-test": "catalog:",
+    "vitest": "catalog:",
+    "typescript": "catalog:"
+  }
+}
