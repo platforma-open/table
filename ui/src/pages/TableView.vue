@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, reactive, Transition, watch } from 'vue';
+import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
 import './ag-theme.css';
@@ -7,17 +8,108 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import { ColDef, ModuleRegistry } from '@ag-grid-community/core';
 import { AgGridVue } from '@ag-grid-community/vue3';
 import { PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratory/platforma-uikit';
+import { PTableColumnSpec, ValueType, FullPTableColumnData, AxisId } from '@milaboratory/sdk-ui';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
-  settings: {}
+  enrichmentColumns: []
 }));
 
 const pfDriver = model.pFrameDriver;
-const frameRef = computed(() => app.getOutputFieldOkOptional('pFrame'));
+const pFrame = computed(() => app.getOutputFieldOkOptional('pFrame'));
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
+
+const settingsOpened = computed({
+  get: () => uiState.model.settingsOpened,
+  set: (opened) => {
+    uiState.model.settingsOpened = opened;
+    uiState.save();
+  }
+});
+
+const columnOptionsEvaluating = ref(false);
+const columnPlaceholder = computed(() =>
+  columnOptionsEvaluating.value ? 'Loading columns...' : 'Select the main column'
+);
+const columnOptions = computedAsync(
+  async () => {
+    if (!pFrame || !pFrame.value) return [];
+    const columns = await pfDriver.listColumns(pFrame.value);
+    return columns.map((idAndSpec, i) => ({
+      text: idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString(),
+      value: idAndSpec
+    }));
+  },
+  [],
+  columnOptionsEvaluating
+);
+const columnSelected = computed({
+  get: () => uiState.model.mainColumn,
+  set: (idAndSpec) => {
+    uiState.model.mainColumn = idAndSpec;
+    uiState.model.enrichmentColumns = [];
+    uiState.save();
+  }
+});
+const column = reactive({
+  label: 'Main column',
+  placeholder: columnPlaceholder,
+  options: columnOptions,
+  selected: columnSelected,
+  disabled: columnOptionsEvaluating
+});
+
+const enrichmentEvaluating = ref(false);
+const enrichmentPlaceholder = computed(() =>
+  !column.selected
+    ? 'First, select the main column'
+    : enrichmentEvaluating.value
+    ? 'Loading columns...'
+    : 'Select enrichment columns'
+);
+const enrichmentOptions = computedAsync(
+  async () => {
+    if (!pFrame || !pFrame.value || !column.selected) return [];
+    const response = await pfDriver.findColumns(pFrame.value, {
+      columnFilter: {},
+      compatibleWith: column.selected.spec.axesSpec.map(
+        (axis) =>
+          ({
+            type: axis.type,
+            name: axis.name,
+            domain: Object.entries(axis.domain ?? []).reduce((acc, [key, value]) => {
+              acc[key] = value;
+              return acc;
+            }, {} as Record<string, string>)
+          } as AxisId)
+      ),
+      strictlyCompatible: true
+    });
+    return response.hits.map((idAndSpec, i) => ({
+      text: idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString(),
+      value: idAndSpec
+    }));
+  },
+  [],
+  enrichmentEvaluating
+);
+const enrichmentSelected = computed({
+  get: () => uiState.model.enrichmentColumns,
+  set: (idsAndSpecs) => {
+    uiState.model.enrichmentColumns = idsAndSpecs;
+    uiState.save();
+  }
+});
+const enrichmentDisabled = computed(() => !column.selected && !enrichmentEvaluating.value);
+const enrichment = reactive({
+  label: 'Enrichment columns',
+  placeholder: enrichmentPlaceholder,
+  options: enrichmentOptions,
+  selected: enrichmentSelected,
+  disabled: enrichmentDisabled
+});
 
 type AgTableData = {
   colDefs: ColDef[];
@@ -26,48 +118,90 @@ type AgTableData = {
 
 const agData = ref<AgTableData>();
 
-const panel = reactive({
-  opened: uiState.model.settingsOpened,
-  toggle() {
-    uiState.model.settingsOpened = !this.opened;
-    uiState.save();
-  },
-  reset(opened: boolean) {
-    this.opened = opened;
+function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef {
+  const colDef: ColDef = {
+    field: colId,
+    headerName: spec.spec.annotations?.['pl7.app/label'] ?? 'Unlabeled ' + iCol.toString(),
+    cellDataType: true
+  };
+
+  if (spec.type == 'axis') {
+    colDef.pinned = 'left';
+    colDef.lockPosition = true;
   }
-});
+
+  var dataType: ValueType;
+  if (spec.type == 'axis') {
+    dataType = spec.spec.type;
+  } else {
+    dataType = spec.spec.valueType;
+  }
+  if (dataType == 'Int' || dataType == 'Long' || dataType == 'Float' || dataType == 'Double') {
+    colDef.type = 'numericColumn';
+  }
+
+  return colDef;
+}
+
+async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<AgTableData> {
+  const nCols = columns.length;
+  const nRows = columns[0].data.data.length;
+
+  const rowData = [];
+  for (let iRow = 0; iRow < nRows; ++iRow) {
+    const row: Record<string, any> = {};
+
+    for (let iCol = 0; iCol < nCols; ++iCol) {
+      const col = columns[iCol];
+      const colId = iCol.toString();
+      row[colId] = col.data.data[iRow];
+    }
+
+    rowData.push(row);
+  }
+
+  const colDefs = [];
+  for (let iCol = 0; iCol < nCols; ++iCol) {
+    const colId = iCol.toString();
+    colDefs.push(getColDef(colId, columns[iCol].spec, iCol));
+  }
+
+  return { rowData, colDefs };
+}
 
 watch(
-  () => uiState.model.settingsOpened,
-  (opened) => {
-    panel.reset(opened);
+  () => ({
+    mainColumn: uiState.model.mainColumn,
+    enrichmentColumns: uiState.model.enrichmentColumns
+  }),
+  async (selection) => {
+    if (!pFrame || !pFrame.value || !selection.mainColumn) {
+      agData.value = {
+        colDefs: [],
+        rowData: []
+      };
+      return;
+    }
+
+    const pTable = await pfDriver.calculateTableData(pFrame.value, {
+      src: {
+        type: 'outer',
+        primary: {
+          type: 'column',
+          column: selection.mainColumn.columnId
+        },
+        secondary: selection.enrichmentColumns.map((column) => ({
+          type: 'column',
+          column: column.columnId
+        }))
+      },
+      filters: [],
+      sorting: []
+    });
+    agData.value = await calculateAgTableData(pTable);
   },
   { immediate: true }
 );
-
-const column = reactive({
-  label: 'Main column',
-  placeholder: 'Select main column',
-  options: [
-    { text: 'Item text 1', value: 1 },
-    { text: 'Item text 2', value: 2 },
-    { text: 'Item text 3', value: 3 },
-    { text: 'Item text 4', value: 4 }
-  ],
-  selected: undefined
-});
-
-const enrichment = reactive({
-  label: 'Enrichment columns',
-  placeholder: 'Select enrichment columns',
-  options: [
-    { text: 'Item text 1', value: 1 },
-    { text: 'Item text 2', value: 2 },
-    { text: 'Item text 3', value: 3 },
-    { text: 'Item text 4', value: 4 }
-  ],
-  selected: ref([])
-});
 </script>
 
 <template>
@@ -81,7 +215,7 @@ const enrichment = reactive({
       />
       <div class="overlay">
         <Transition name="slide-fade">
-          <div class="settings-panel" v-if="panel.opened">
+          <div class="settings-panel" v-if="settingsOpened">
             <div class="text-subtitle-s settings-header">Select columns to view</div>
             <form class="settings-form">
               <PlDropdown
@@ -90,6 +224,7 @@ const enrichment = reactive({
                 :options="column.options"
                 v-model="column.selected"
                 clearable
+                :disabled="column.disabled"
               />
               <PlDropdownMulti
                 :label="enrichment.label"
@@ -97,7 +232,7 @@ const enrichment = reactive({
                 :options="enrichment.options"
                 v-model="enrichment.selected"
                 clearable
-                :disabled="!column.selected"
+                :disabled="enrichment.disabled"
               />
             </form>
           </div>
@@ -108,8 +243,8 @@ const enrichment = reactive({
       size="large"
       icon="link"
       class="settings-button"
-      :style="{ background: panel.opened ? 'var(--btn-active-select)' : 'transparent' }"
-      @click="panel.toggle()"
+      :class="{ 'active-button': settingsOpened }"
+      @click="settingsOpened = !settingsOpened"
     />
   </div>
 </template>
@@ -129,11 +264,13 @@ const enrichment = reactive({
   display: flex;
   flex-direction: row-reverse;
   width: 100%;
-  /* height: 100%; */
 }
 .settings-button {
   gap: 0;
   z-index: 3;
+}
+.active-button {
+  background: var(--btn-active-select);
 }
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
@@ -160,9 +297,9 @@ const enrichment = reactive({
 }
 .settings-header {
   padding: 12px;
+  border-radius: 8px 8px 0 0;
   border-bottom: 1px solid var(--border-color-default);
   background-color: var(--bg-elevated-02);
-  border-radius: 8px 8px 0 0;
 }
 .settings-form {
   display: flex;
