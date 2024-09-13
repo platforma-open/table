@@ -6,6 +6,18 @@ settings:
 
 catalogs:
   default:
+    '@ag-grid-community/client-side-row-model':
+      specifier: ^32.1.0
+      version: 32.1.0
+    '@ag-grid-community/core':
+      specifier: ^32.1.0
+      version: 32.1.0
+    '@ag-grid-community/styles':
+      specifier: ^32.1.0
+      version: 32.1.0
+    '@ag-grid-community/vue3':
+      specifier: ^32.1.0
+      version: 32.1.0
     '@changesets/cli':
       specifier: ^2.27.8
       version: 2.27.8
@@ -62,6 +74,18 @@ importers:
 
   .:
     dependencies:
+      '@ag-grid-community/client-side-row-model':
+        specifier: 'catalog:'
+        version: 32.1.0
+      '@ag-grid-community/core':
+        specifier: 'catalog:'
+        version: 32.1.0
+      '@ag-grid-community/styles':
+        specifier: 'catalog:'
+        version: 32.1.0
+      '@ag-grid-community/vue3':
+        specifier: 'catalog:'
+        version: 32.1.0(typescript@5.6.2)
       '@milaboratory/milaboratories.table.model':
         specifier: workspace:*
         version: link:model
@@ -74,6 +98,12 @@ importers:
       '@milaboratory/sdk-ui':
         specifier: 'catalog:'
         version: 0.12.22
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.4(typescript@5.6.2)
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
     devDependencies:
       '@changesets/cli':
         specifier: 'catalog:'
@@ -176,6 +206,18 @@ importers:
         version: 2.0.5(@types/node@22.5.4)
 
 packages:
+
+  '@ag-grid-community/client-side-row-model@32.1.0':
+    resolution: {integrity: sha512-R/IA3chA/w9fy6/EeZhi42PTwVnb6bNjGMah1GWGvuNDTvfbPO4X9r4nhOMj6YH483bO+C7pPb4EoLECx0dfRQ==}
+
+  '@ag-grid-community/core@32.1.0':
+    resolution: {integrity: sha512-fHpgSZa/aBjg2DdOzooDxILFZqxmxP8vsjRfeZVtqby19mTKwNAclE7Z6rWzOA0GYjgN9s8JwLFcNA5pvfswMg==}
+
+  '@ag-grid-community/styles@32.1.0':
+    resolution: {integrity: sha512-OjakLetS/zr0g5mJWpnjldk/RjGnl7Rv3I/5cGuvtgdmSgS+4FNZMr8ZmyR8Bl34s0RM63OSIphpVaFGlnJM4w==}
+
+  '@ag-grid-community/vue3@32.1.0':
+    resolution: {integrity: sha512-X8kbFxDLmDyH0BtYJpwMC/ta8QdKeEpnryiwwLndoKnVaEFQGP4U/CIvEo0n/+eEoN7/VWiKKkT+lC33zj8QTQ==}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -1311,6 +1353,9 @@ packages:
 
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
+
+  ag-charts-types@10.1.0:
+    resolution: {integrity: sha512-pk9ft8hbgTXJ/thI/SEUR1BoauNplYExpcHh7tMOqVikoDsta1O15TB1ZL4XWnl4TPIzROBmONKsz7d8a2HBuQ==}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -2705,6 +2750,25 @@ packages:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
 
 snapshots:
+
+  '@ag-grid-community/client-side-row-model@32.1.0':
+    dependencies:
+      '@ag-grid-community/core': 32.1.0
+      tslib: 2.7.0
+
+  '@ag-grid-community/core@32.1.0':
+    dependencies:
+      ag-charts-types: 10.1.0
+      tslib: 2.7.0
+
+  '@ag-grid-community/styles@32.1.0': {}
+
+  '@ag-grid-community/vue3@32.1.0(typescript@5.6.2)':
+    dependencies:
+      '@ag-grid-community/core': 32.1.0
+      vue: 3.5.4(typescript@5.6.2)
+    transitivePeerDependencies:
+      - typescript
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -4448,6 +4512,8 @@ snapshots:
   '@vue/shared@3.5.4': {}
 
   abbrev@1.1.1: {}
+
+  ag-charts-types@10.1.0: {}
 
   agent-base@6.0.2:
     dependencies:

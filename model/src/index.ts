@@ -1,17 +1,37 @@
-import { BlockModel, ImportFileHandle, InferOutputsType, Option, Ref } from '@milaboratory/sdk-ui';
+import {
+  BlockModel,
+  type InferOutputsType,
+  type InferHrefType,
+  PColumn,
+  TreeNodeAccessor,
+  isPColumn
+} from '@milaboratory/sdk-ui';
 
-export type BlockArgs = {
-  fastaData?: string;
-  fastaFile?: ImportFileHandle;
+export type BlockArgs = {};
+
+export type UiState = {
+  settingsOpened: boolean;
+  settings: unknown;
 };
 
-export const model = BlockModel.create<BlockArgs>('Heavy')
+export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
   .initialArgs({})
-  .output('data', (wf) => wf.outputs?.resolve('data')?.getRemoteFileHandle())
   .sections([
-    { type: 'link', href: '/', label: 'Data source' },
-    { type: 'link', href: '/alignmentsPretty', label: 'Alignments pretty' }
+    {
+      type: 'link',
+      href: '/',
+      label: 'View'
+    }
   ])
+  .output('pFrame', (render) => {
+    const collection = render.resultPool.getDataFromResultPool();
+    if (collection === undefined || !collection.isComplete) return undefined;
+
+    const pColumns = collection.entries.map(({ obj }) => obj).filter(isPColumn);
+    return render.createPFrame(pColumns as PColumn<TreeNodeAccessor>[]);
+  })
   .done();
 
 export type BlockOutputs = InferOutputsType<typeof model>;
+
+export type NavigationHref = InferHrefType<typeof model>;
