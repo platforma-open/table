@@ -1,13 +1,11 @@
 import { model } from '@milaboratory/milaboratories.table.model';
 import { defineApp } from '@milaboratory/sdk-vue';
-import DataSource from './pages/DataSource.vue';
-import AlignmentsPretty from './pages/AlignmentsPretty.vue';
+import TableView from './pages/TableView.vue';
 
 export const sdkPlugin = defineApp(model, () => {
   return {
     routes: {
-      '/': DataSource,
-      '/alignmentsPretty': AlignmentsPretty
+      '/': TableView
     }
   };
 });
