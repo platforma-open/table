@@ -26,6 +26,7 @@ catalog:
 
   'vue': ^3.4.38
   'vue-tsc': ^2.1.4
+  '@vueuse/core': ^11.0.3
 
   'zod': ^3.23.8
 
