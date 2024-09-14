@@ -12,7 +12,18 @@ import {
   type PTableColumnSpec,
   type ValueType,
   type FullPTableColumnData,
-  type AxisId
+  type AxisId,
+  PValueInt,
+  PValueIntNA,
+  PValueLongNA,
+  PValueFloat,
+  PValueFloatNA,
+  PValueDouble,
+  PValueDoubleNA,
+  PValueString,
+  PValueStringNA,
+  PValueBytes,
+  PValueBytesNA
 } from '@milaboratory/sdk-ui';
 
 const app = useApp();
@@ -43,7 +54,9 @@ const columnOptions = computedAsync(
     if (!pFrame || !pFrame.value) return [];
     const columns = await pfDriver.listColumns(pFrame.value);
     return columns.map((idAndSpec, i) => ({
-      text: idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString(),
+      text: (
+        idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString()
+      ).trim(),
       value: idAndSpec
     }));
   },
@@ -95,10 +108,14 @@ const enrichmentOptions = computedAsync(
       ),
       strictlyCompatible: true
     });
-    return response.hits.map((idAndSpec, i) => ({
-      text: idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString(),
-      value: idAndSpec
-    }));
+    return response.hits
+      .filter((idAndSpec) => idAndSpec.columnId !== column.selected?.columnId)
+      .map((idAndSpec, i) => ({
+        text: (
+          idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString()
+        ).trim(),
+        value: idAndSpec
+      }));
   },
   [],
   enrichmentEvaluating
@@ -123,37 +140,100 @@ type AgTableData = {
   colDefs: ColDef[];
   rowData: any[];
 };
-
 const agData = ref<AgTableData>();
+
+function getValueType(spec: PTableColumnSpec): ValueType {
+  if (spec.type == 'axis') {
+    return spec.spec.type;
+  } else {
+    return spec.spec.valueType;
+  }
+}
 
 function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef {
   const colDef: ColDef = {
     field: colId,
-    headerName: spec.spec.annotations?.['pl7.app/label'] ?? 'Unlabeled ' + iCol.toString(),
-    cellDataType: true
+    headerName: (spec.spec.annotations?.['pl7.app/label'] ?? 'Unlabeled ' + iCol.toString()).trim(),
+    cellDataType: 'text',
+    valueFormatter: (value) => {
+      if (!value) {
+        return 'ERROR';
+      } else if (value.value === null) {
+        return 'NULL';
+      } else if (value.value === undefined) {
+        return 'NA';
+      } else {
+        return value.value.toString();
+      }
+    }
+    // filter: true
   };
 
   if (spec.type == 'axis') {
-    colDef.pinned = 'left';
+    // colDef.pinned = 'left';
     colDef.lockPosition = true;
   }
 
-  var dataType: ValueType;
-  if (spec.type == 'axis') {
-    dataType = spec.spec.type;
-  } else {
-    dataType = spec.spec.valueType;
-  }
+  const dataType = getValueType(spec);
   if (dataType == 'Int' || dataType == 'Long' || dataType == 'Float' || dataType == 'Double') {
-    colDef.type = 'numericColumn';
+    colDef.cellDataType = 'number';
   }
 
   return colDef;
 }
 
+function isValueNA(value: unknown, type: ValueType): boolean {
+  if (type == 'Int') {
+    return (value as PValueInt) === PValueIntNA;
+  } else if (type == 'Long') {
+    return (value as BigInt) === PValueLongNA;
+  } else if (type == 'Float') {
+    return (value as PValueFloat) === PValueFloatNA;
+  } else if (type == 'Double') {
+    return (value as PValueDouble) === PValueDoubleNA;
+  } else if (type == 'String') {
+    return (value as PValueString) === PValueStringNA;
+  } else if (type == 'Bytes') {
+    return (value as PValueBytes) === PValueBytesNA;
+  } else {
+    throw Error('Unsupported value type: ' + type);
+  }
+}
+
+class BooleanArrayView {
+  array: Uint8Array;
+
+  constructor(array: Uint8Array) {
+    this.array = array;
+
+    return new Proxy(this, {
+      get(target, prop) {
+        return prop in target ? target[prop as keyof typeof target] : target.get(Number(prop));
+      }
+    });
+  }
+
+  get(index: number): boolean {
+    const chunkIndex = Math.floor(index / 8);
+    const mask = 1 << (7 - (index % 8));
+    return (this.array[chunkIndex] & mask) > 0;
+  }
+}
+
 async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<AgTableData> {
   const nCols = columns.length;
   const nRows = columns[0].data.data.length;
+
+  const colDefs = [];
+  for (let iCol = 0; iCol < nCols; ++iCol) {
+    const colId = iCol.toString();
+    colDefs.push(getColDef(colId, columns[iCol].spec, iCol));
+  }
+
+  const absenceReaders = [];
+  for (let iCol = 0; iCol < nCols; ++iCol) {
+    absenceReaders.push(new BooleanArrayView(columns[iCol].data.absent));
+  }
 
   const rowData = [];
   for (let iRow = 0; iRow < nRows; ++iRow) {
@@ -162,19 +242,23 @@ async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<Ag
     for (let iCol = 0; iCol < nCols; ++iCol) {
       const col = columns[iCol];
       const colId = iCol.toString();
-      row[colId] = col.data.data[iRow];
+      const value = col.data.data[iRow];
+      const dataType = getValueType(columns[iCol].spec);
+      if (absenceReaders[iCol].get(iRow)) {
+        row[colId] = null; // NULL
+      } else if (isValueNA(value, dataType)) {
+        row[colId] = undefined; // NA
+      } else if (dataType === 'Long') {
+        row[colId] = Number(value);
+      } else {
+        row[colId] = value;
+      }
     }
 
     rowData.push(row);
   }
 
-  const colDefs = [];
-  for (let iCol = 0; iCol < nCols; ++iCol) {
-    const colId = iCol.toString();
-    colDefs.push(getColDef(colId, columns[iCol].spec, iCol));
-  }
-
-  return { rowData, colDefs };
+  return { colDefs, rowData };
 }
 
 watch(
@@ -268,10 +352,10 @@ watch(
 .overlay {
   position: relative;
   z-index: 2;
-  inset: -100% 0 0 0;
+  inset: calc(-100% + 68px) 0 0 0;
   display: flex;
   flex-direction: row-reverse;
-  width: 100%;
+  width: calc(100% + 74px);
 }
 .settings-button {
   gap: 0;
@@ -288,7 +372,7 @@ watch(
 }
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  transform: translateX(80px);
+  transform: translateY(-40px);
   opacity: 0;
 }
 .settings-panel {
