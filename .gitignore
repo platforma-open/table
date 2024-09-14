@@ -5,3 +5,4 @@ dev/
 work/
 *.tgz
 .DS_Store
+.test_auth.json
