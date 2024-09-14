@@ -6,18 +6,20 @@
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "build": "tsup && vite build && block-tools build-model"
   },
   "dependencies": {
-    "@milaboratory/sdk-ui": "catalog:",
-    "zod": "catalog:"
+    "@milaboratory/sdk-ui": "catalog:"
   },
   "devDependencies": {
     "@milaboratory/pl-block-tools": "catalog:",
+    "tsup": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:",
-    "tsup": "catalog:"
+    "vite": "catalog:"
   },
   "tsup": {
     "entry": [

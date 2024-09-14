@@ -3,7 +3,7 @@ import {
   type InferOutputsType,
   type InferHrefType,
   isPColumn,
-  PColumnIdAndSpec
+  type PColumnIdAndSpec
 } from '@milaboratory/sdk-ui';
 
 export type BlockArgs = {};

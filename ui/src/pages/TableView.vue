@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed, ref, reactive, Transition, watch } from 'vue';
+import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
 import './ag-theme.css';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ColDef, ModuleRegistry } from '@ag-grid-community/core';
+import { type ColDef, ModuleRegistry } from '@ag-grid-community/core';
 import { AgGridVue } from '@ag-grid-community/vue3';
 import { PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratory/platforma-uikit';
-import { PTableColumnSpec, ValueType, FullPTableColumnData, AxisId } from '@milaboratory/sdk-ui';
+import {
+  type PTableColumnSpec,
+  type ValueType,
+  type FullPTableColumnData,
+  type AxisId
+} from '@milaboratory/sdk-ui';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
@@ -66,8 +71,8 @@ const enrichmentPlaceholder = computed(() =>
   !column.selected
     ? 'First, select the main column'
     : enrichmentEvaluating.value
-    ? 'Loading columns...'
-    : 'Select enrichment columns'
+      ? 'Loading columns...'
+      : 'Select enrichment columns'
 );
 const enrichmentOptions = computedAsync(
   async () => {
@@ -79,11 +84,14 @@ const enrichmentOptions = computedAsync(
           ({
             type: axis.type,
             name: axis.name,
-            domain: Object.entries(axis.domain ?? []).reduce((acc, [key, value]) => {
-              acc[key] = value;
-              return acc;
-            }, {} as Record<string, string>)
-          } as AxisId)
+            domain: Object.entries(axis.domain ?? []).reduce(
+              (acc, [key, value]) => {
+                acc[key] = value;
+                return acc;
+              },
+              {} as Record<string, string>
+            )
+          }) as AxisId
       ),
       strictlyCompatible: true
     });
@@ -293,7 +301,9 @@ watch(
   border-radius: 8px;
   border: 1px solid var(--border-color-default);
   background: var(--bg-elevated-01);
-  box-shadow: 0 6px 24px -2px rgba(15, 36, 77, 0.08), 0px 4px 12px -2px rgba(15, 36, 77, 0.08);
+  box-shadow:
+    0 6px 24px -2px rgba(15, 36, 77, 0.08),
+    0px 4px 12px -2px rgba(15, 36, 77, 0.08);
 }
 .settings-header {
   padding: 12px;

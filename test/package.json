@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@milaboratory/sdk-test": "catalog:",
-    "vitest": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

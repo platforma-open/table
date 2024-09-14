@@ -13,14 +13,14 @@
     "@milaboratory/milaboratories.table.model": "workspace:*",
     "@milaboratory/milaboratories.table.ui": "workspace:*",
     "@milaboratory/milaboratories.table.workflow": "workspace:*",
-    "@milaboratory/sdk-ui": "catalog:",
-    "@ag-grid-community/core": "catalog:",
-    "@ag-grid-community/vue3": "catalog:",
-    "@ag-grid-community/styles": "catalog:",
-    "@ag-grid-community/client-side-row-model": "catalog:",
-    "vue": "catalog:",
-    "@vueuse/core": "catalog:",
-    "zod": "catalog:"
+    "@milaboratory/pl-block-tools": "catalog:"
+  },
+  "devDependencies": {
+    "@changesets/cli": "catalog:",
+    "prettier": "catalog:"
+  },
+  "pnpm": {
+    "overrides": {}
   },
   "block": {
     "components": {
@@ -47,15 +47,5 @@
         "logo": "file:logos/organization-logo.png"
       }
     }
-  },
-  "devDependencies": {
-    "@changesets/cli": "catalog:",
-    "@milaboratory/pl-block-tools": "catalog:"
-  },
-  "//": {
-    "@milaboratory/pl-middle-layer": "file:/Users/vadimpiven/Documents/MiLabs/git/ts-pl-middle-layer"
-  },
-  "pnpm": {
-    "overrides": {}
   }
 }
