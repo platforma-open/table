@@ -93,6 +93,9 @@ importers:
 
   model:
     dependencies:
+      '@ag-grid-community/core':
+        specifier: 'catalog:'
+        version: 32.1.0
       '@milaboratory/sdk-ui':
         specifier: 'catalog:'
         version: 0.12.22

@@ -5,7 +5,7 @@ import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
 import './ag-theme.css';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { type ColDef, ModuleRegistry } from '@ag-grid-community/core';
+import { type ColDef, ModuleRegistry, type GridOptions } from '@ag-grid-community/core';
 import { AgGridVue } from '@ag-grid-community/vue3';
 import { PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratory/platforma-uikit';
 import {
@@ -68,6 +68,7 @@ const columnSelected = computed({
   set: (idAndSpec) => {
     uiState.model.mainColumn = idAndSpec;
     uiState.model.enrichmentColumns = [];
+    uiState.model.gridState = undefined;
     uiState.save();
   }
 });
@@ -141,6 +142,25 @@ type AgTableData = {
   rowData: any[];
 };
 const agData = ref<AgTableData>();
+const gridState = computed({
+  get: () => uiState.model.gridState,
+  set: (gridState) => {
+    uiState.model.gridState = gridState;
+    uiState.save();
+  }
+});
+const agOptions: GridOptions = {
+  initialState: gridState.value,
+  onStateUpdated: (event) => {
+    gridState.value = event.state;
+  },
+  autoSizeStrategy: {
+    type: 'fitCellContents'
+  },
+  onRowDataUpdated: (event) => {
+    event.api.autoSizeAllColumns();
+  }
+};
 
 function getValueType(spec: PTableColumnSpec): ValueType {
   if (spec.type == 'axis') {
@@ -262,12 +282,29 @@ async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<Ag
 }
 
 watch(
-  () => ({
-    mainColumn: uiState.model.mainColumn,
-    enrichmentColumns: uiState.model.enrichmentColumns
-  }),
-  async (selection) => {
-    if (!pFrame || !pFrame.value || !selection.mainColumn) {
+  () => [pFrame?.value, columnSelected?.value, enrichmentSelected?.value] as const,
+  async (state, prevState) => {
+    const [pFrame, mainColumn, enrichmentColumns] = state;
+
+    if (prevState) {
+      const [oldPFrame, oldMainColumn, oldEnrichmentColumns] = prevState;
+      if (pFrame === oldPFrame && mainColumn?.columnId === oldMainColumn?.columnId) {
+        const lhs = enrichmentColumns.map((column) => column.columnId).sort();
+        const rhs = oldEnrichmentColumns.map((column) => column.columnId).sort();
+        if (lhs.length == rhs.length) {
+          let eq = true;
+          for (let i = 0; i < lhs.length; ++i) {
+            if (lhs[i] !== rhs[i]) {
+              eq = false;
+              break;
+            }
+          }
+          if (eq) return;
+        }
+      }
+    }
+
+    if (!pFrame || !mainColumn || !enrichmentColumns) {
       agData.value = {
         colDefs: [],
         rowData: []
@@ -275,14 +312,14 @@ watch(
       return;
     }
 
-    const pTable = await pfDriver.calculateTableData(pFrame.value, {
+    const pTable = await pfDriver.calculateTableData(pFrame, {
       src: {
         type: 'outer',
         primary: {
           type: 'column',
-          column: selection.mainColumn.columnId
+          column: mainColumn.columnId
         },
-        secondary: selection.enrichmentColumns.map((column) => ({
+        secondary: enrichmentColumns.map((column) => ({
           type: 'column',
           column: column.columnId
         }))
@@ -300,10 +337,10 @@ watch(
   <div class="container">
     <div style="flex: 1">
       <AgGridVue
+        :gridOptions="agOptions"
         :columnDefs="agData?.colDefs"
         :rowData="agData?.rowData"
-        :style="{ height: '100%' }"
-        :autoSizeStrategy="{ type: 'fitCellContents' }"
+        style="height: 100%"
       />
       <div class="overlay">
         <Transition name="slide-fade">
