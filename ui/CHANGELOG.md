@@ -1,4 +1,4 @@
-# @milaboratory/milaboratories.table
+# @milaboratory/milaboratories.table.ui
 
 ## 0.1.1
 
@@ -7,5 +7,3 @@
 - View is reloaded when new grid state is set over the network.
 - Updated dependencies
   - @milaboratory/milaboratories.table.model@0.1.1
-  - @milaboratory/milaboratories.table.ui@0.1.1
-  - @milaboratory/milaboratories.table.workflow@0.1.1
