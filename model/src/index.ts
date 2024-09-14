@@ -5,6 +5,7 @@ import {
   isPColumn,
   type PColumnIdAndSpec
 } from '@milaboratory/sdk-ui';
+import { type GridState } from '@ag-grid-community/core';
 
 export type BlockArgs = {};
 
@@ -12,6 +13,7 @@ export type UiState = {
   settingsOpened: boolean;
   mainColumn?: PColumnIdAndSpec;
   enrichmentColumns: PColumnIdAndSpec[];
+  gridState?: GridState;
 };
 
 export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
