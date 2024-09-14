@@ -5,7 +5,12 @@ import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
 import './ag-theme.css';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { type ColDef, ModuleRegistry, type GridOptions } from '@ag-grid-community/core';
+import {
+  type ColDef,
+  ModuleRegistry,
+  type GridOptions,
+  type GridApi
+} from '@ag-grid-community/core';
 import { AgGridVue } from '@ag-grid-community/vue3';
 import { PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratory/platforma-uikit';
 import {
@@ -145,12 +150,20 @@ const agData = ref<AgTableData>();
 const gridState = computed({
   get: () => uiState.model.gridState,
   set: (gridState) => {
-    uiState.model.gridState = gridState;
-    uiState.save();
+    if (JSON.stringify(gridState) != JSON.stringify(uiState.model.gridState)) {
+      uiState.model.gridState = gridState;
+      uiState.save();
+    }
   }
 });
+let agGridApi: GridApi | undefined = undefined;
 const agOptions: GridOptions = {
+  animateRows: false,
+  suppressColumnMoveAnimation: true,
   initialState: gridState.value,
+  onGridReady: (event) => {
+    agGridApi = event.api;
+  },
   onStateUpdated: (event) => {
     gridState.value = event.state;
   },
@@ -161,6 +174,16 @@ const agOptions: GridOptions = {
     event.api.autoSizeAllColumns();
   }
 };
+const agReloadKey = ref(0);
+watch(
+  () => gridState.value,
+  (gridState) => {
+    if (JSON.stringify(gridState) != JSON.stringify(agGridApi?.getState())) {
+      agOptions.initialState = gridState;
+      ++agReloadKey.value;
+    }
+  }
+);
 
 function getValueType(spec: PTableColumnSpec): ValueType {
   if (spec.type == 'axis') {
@@ -173,7 +196,9 @@ function getValueType(spec: PTableColumnSpec): ValueType {
 function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef {
   const colDef: ColDef = {
     field: colId,
-    headerName: (spec.spec.annotations?.['pl7.app/label'] ?? 'Unlabeled ' + iCol.toString()).trim(),
+    headerName: (
+      spec.spec.annotations?.['pl7.app/label'] ?? 'Unlabeled ' + spec.type + ' ' + iCol.toString()
+    ).trim(),
     cellDataType: 'text',
     valueFormatter: (value) => {
       if (!value) {
@@ -341,6 +366,7 @@ watch(
         :columnDefs="agData?.colDefs"
         :rowData="agData?.rowData"
         style="height: 100%"
+        :key="agReloadKey"
       />
       <div class="overlay">
         <Transition name="slide-fade">
