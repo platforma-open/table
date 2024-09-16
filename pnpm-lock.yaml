@@ -39,12 +39,18 @@ catalogs:
     '@milaboratory/tengo-template-builder':
       specifier: ^1.14.3
       version: 1.14.3
+    '@types/lodash':
+      specifier: ^4.17.7
+      version: 4.17.7
     '@vitejs/plugin-vue':
       specifier: ^5.1.3
       version: 5.1.3
     '@vueuse/core':
       specifier: ^11.0.3
       version: 11.0.3
+    lodash:
+      specifier: ^4.17.21
+      version: 4.17.21
     prettier:
       specifier: ^3.3.3
       version: 3.3.3
@@ -152,9 +158,15 @@ importers:
       '@milaboratory/sdk-vue':
         specifier: 'catalog:'
         version: 1.1.5(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.12.22)(typescript@5.6.2)(vue@3.5.5(typescript@5.6.2))
+      '@types/lodash':
+        specifier: 'catalog:'
+        version: 4.17.7
       '@vueuse/core':
         specifier: 'catalog:'
         version: 11.0.3(vue@3.5.5(typescript@5.6.2))
+      lodash:
+        specifier: 'catalog:'
+        version: 4.17.21
       vue:
         specifier: 'catalog:'
         version: 3.5.5(typescript@5.6.2)
@@ -1231,6 +1243,9 @@ packages:
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
+  '@types/lodash@4.17.7':
+    resolution: {integrity: sha512-8wTvZawATi/lsmNu10/j2hk1KEP0IvjubqPE3cu1Xz7xfXXt5oCq3SNUz4fMIP4XGF9Ky+Ue2tBA3hcS7LSBlA==}
+
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
@@ -1939,6 +1954,9 @@ packages:
 
   lodash.startcase@4.4.0:
     resolution: {integrity: sha512-+WKqsK294HMSc2jEbNgpHpd0JfIBhp7rEV4aqXWqFr6AlXov+SlcgB1Fv01y2kGe3Gc8nMW7VA0SrGuSkRfIEg==}
+
+  lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
   logform@2.6.1:
     resolution: {integrity: sha512-CdaO738xRapbKIMVn2m4F6KTj4j7ooJ8POVnebSgKo3KBz5axNXRAL7ZdRjIV6NOr2Uf4vjtRkxrFETOioCqSA==}
@@ -4387,6 +4405,8 @@ snapshots:
 
   '@types/estree@1.0.5': {}
 
+  '@types/lodash@4.17.7': {}
+
   '@types/node@12.20.55': {}
 
   '@types/node@22.5.4':
@@ -5162,6 +5182,8 @@ snapshots:
   lodash.sortby@4.7.0: {}
 
   lodash.startcase@4.4.0: {}
+
+  lodash@4.17.21: {}
 
   logform@2.6.1:
     dependencies:

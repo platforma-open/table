@@ -12,7 +12,12 @@ import {
   type GridApi
 } from '@ag-grid-community/core';
 import { AgGridVue } from '@ag-grid-community/vue3';
-import { PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratory/platforma-uikit';
+import {
+  PlAlert,
+  PlBtnSecondary,
+  PlDropdown,
+  PlDropdownMulti
+} from '@milaboratory/platforma-uikit';
 import {
   type PTableColumnSpec,
   type ValueType,
@@ -30,6 +35,7 @@ import {
   PValueBytes,
   PValueBytesNA
 } from '@milaboratory/sdk-ui';
+import * as lodash from 'lodash';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
@@ -150,7 +156,7 @@ const agData = ref<AgTableData>();
 const gridState = computed({
   get: () => uiState.model.gridState,
   set: (gridState) => {
-    if (JSON.stringify(gridState) != JSON.stringify(uiState.model.gridState)) {
+    if (!lodash.isEqual(gridState, uiState.model.gridState)) {
       uiState.model.gridState = gridState;
       uiState.save();
     }
@@ -178,7 +184,7 @@ const agReloadKey = ref(0);
 watch(
   () => gridState.value,
   (gridState) => {
-    if (JSON.stringify(gridState) != JSON.stringify(agGridApi?.getState())) {
+    if (!lodash.isEqual(gridState, agGridApi?.getState())) {
       agOptions.initialState = gridState;
       ++agReloadKey.value;
     }
@@ -307,29 +313,20 @@ async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<Ag
 }
 
 watch(
-  () => [pFrame?.value, columnSelected?.value, enrichmentSelected?.value] as const,
+  () => [columnSelected?.value, enrichmentSelected?.value] as const,
   async (state, prevState) => {
-    const [pFrame, mainColumn, enrichmentColumns] = state;
+    const [mainColumn, enrichmentColumns] = state;
 
     if (prevState) {
-      const [oldPFrame, oldMainColumn, oldEnrichmentColumns] = prevState;
-      if (pFrame === oldPFrame && mainColumn?.columnId === oldMainColumn?.columnId) {
+      const [oldMainColumn, oldEnrichmentColumns] = prevState;
+      if (mainColumn?.columnId === oldMainColumn?.columnId) {
         const lhs = enrichmentColumns.map((column) => column.columnId).sort();
         const rhs = oldEnrichmentColumns.map((column) => column.columnId).sort();
-        if (lhs.length == rhs.length) {
-          let eq = true;
-          for (let i = 0; i < lhs.length; ++i) {
-            if (lhs[i] !== rhs[i]) {
-              eq = false;
-              break;
-            }
-          }
-          if (eq) return;
-        }
+        if (lodash.isEqual(lhs, rhs)) return;
       }
     }
 
-    if (!pFrame || !mainColumn || !enrichmentColumns) {
+    if (!pFrame?.value || !mainColumn || !enrichmentColumns) {
       agData.value = {
         colDefs: [],
         rowData: []
@@ -337,7 +334,7 @@ watch(
       return;
     }
 
-    const pTable = await pfDriver.calculateTableData(pFrame, {
+    const pTable = await pfDriver.calculateTableData(pFrame!.value, {
       src: {
         type: 'outer',
         primary: {
@@ -359,58 +356,80 @@ watch(
 </script>
 
 <template>
-  <div class="container">
-    <div style="flex: 1">
-      <AgGridVue
-        :gridOptions="agOptions"
-        :columnDefs="agData?.colDefs"
-        :rowData="agData?.rowData"
-        style="height: 100%"
-        :key="agReloadKey"
-      />
-      <div class="overlay">
-        <Transition name="slide-fade">
-          <div class="settings-panel" v-if="settingsOpened">
-            <div class="text-subtitle-s settings-header">Select columns to view</div>
-            <form class="settings-form">
-              <PlDropdown
-                :label="column.label"
-                :placeholder="column.placeholder"
-                :options="column.options"
-                v-model="column.selected"
-                clearable
-                :disabled="column.disabled"
-              />
-              <PlDropdownMulti
-                :label="enrichment.label"
-                :placeholder="enrichment.placeholder"
-                :options="enrichment.options"
-                v-model="enrichment.selected"
-                clearable
-                :disabled="enrichment.disabled"
-              />
-            </form>
-          </div>
-        </Transition>
+  <div class="box">
+    <Transition name="alert-transition">
+      <PlAlert v-if="!pFrame" type="warn" :icon="true" label="Columns not loaded">
+        Outputs of upstream blocks are either not ready or contain malformed columns
+      </PlAlert>
+    </Transition>
+    <div class="container">
+      <div style="flex: 1">
+        <AgGridVue
+          :gridOptions="agOptions"
+          :columnDefs="agData?.colDefs"
+          :rowData="agData?.rowData"
+          style="height: 100%"
+          :key="agReloadKey"
+        />
+        <div class="overlay">
+          <Transition name="settings-transition">
+            <div class="settings-panel" v-if="settingsOpened">
+              <div class="text-subtitle-s settings-header">Select columns to view</div>
+              <form class="settings-form">
+                <PlDropdown
+                  :label="column.label"
+                  :placeholder="column.placeholder"
+                  :options="column.options"
+                  v-model="column.selected"
+                  clearable
+                  :disabled="column.disabled"
+                />
+                <PlDropdownMulti
+                  :label="enrichment.label"
+                  :placeholder="enrichment.placeholder"
+                  :options="enrichment.options"
+                  v-model="enrichment.selected"
+                  clearable
+                  :disabled="enrichment.disabled"
+                />
+              </form>
+            </div>
+          </Transition>
+        </div>
       </div>
+      <PlBtnSecondary
+        size="large"
+        icon="link"
+        class="settings-button"
+        :class="{ 'active-button': settingsOpened }"
+        @click="settingsOpened = !settingsOpened"
+      />
     </div>
-    <PlBtnSecondary
-      size="large"
-      icon="link"
-      class="settings-button"
-      :class="{ 'active-button': settingsOpened }"
-      @click="settingsOpened = !settingsOpened"
-    />
   </div>
 </template>
 
 <style lang="css">
-.container {
+.box {
   display: flex;
+  flex-direction: column;
   height: 100%;
   gap: 12px;
   margin: 12px;
   min-width: 760px;
+}
+.alert-transition-enter-active,
+.alert-transition-leave-active {
+  transition: all 0.2s ease-in-out;
+}
+.alert-transition-enter-from,
+.alert-transition-leave-to {
+  margin-top: -88px;
+}
+.container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 12px;
 }
 .overlay {
   position: relative;
@@ -427,15 +446,13 @@ watch(
 .active-button {
   background: var(--btn-active-select);
 }
-.slide-fade-enter-active {
-  transition: all 0.3s ease-out;
+.settings-transition-enter-active,
+.settings-transition-leave-active {
+  transition: all 0.15s ease-in-out;
 }
-.slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
-}
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  transform: translateY(-40px);
+.settings-transition-enter-from,
+.settings-transition-leave-to {
+  transform: translateY(-68px);
   opacity: 0;
 }
 .settings-panel {
