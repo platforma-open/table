@@ -1,5 +1,13 @@
 # @milaboratory/milaboratories.table.ui
 
+## 0.1.4
+
+### Patch Changes
+
+- Fix placeholder
+- Updated dependencies
+  - @milaboratory/milaboratories.table.model@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

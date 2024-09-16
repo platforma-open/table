@@ -31,7 +31,7 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
         const resourceType = column.data.resourceType;
         if (resourceType.version !== '1') return false;
         if (
-          // resourceType.name === 'PColumnData/Json' ||
+          resourceType.name === 'PColumnData/Json' ||
           resourceType.name === 'PColumnData/JsonPartitioned' ||
           resourceType.name === 'PColumnData/BinaryPartitioned' ||
           resourceType.name === 'PColumnData/Partitioned/JsonPartitioned' ||
