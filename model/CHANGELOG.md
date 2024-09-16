@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.model
 
+## 0.1.2
+
+### Patch Changes
+
+- Alert when columns not loaded
+
 ## 0.1.1
 
 ### Patch Changes
