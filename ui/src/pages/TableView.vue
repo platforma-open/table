@@ -40,6 +40,7 @@ import * as lodash from 'lodash';
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
+  additionalColumns: [],
   enrichmentColumns: []
 }));
 
@@ -62,14 +63,16 @@ const columnPlaceholder = computed(() =>
 );
 const columnOptions = computedAsync(
   async () => {
-    if (!pFrame || !pFrame.value) return [];
+    if (!pFrame?.value) return [];
     const columns = await pfDriver.listColumns(pFrame.value);
-    return columns.map((idAndSpec, i) => ({
-      text: (
-        idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString()
-      ).trim(),
-      value: idAndSpec
-    }));
+    return columns
+      .map((idAndSpec, i) => ({
+        text:
+          idAndSpec.spec.annotations?.['pl7.app/label']?.trim() ??
+          'Unlabelled column ' + i.toString(),
+        value: idAndSpec
+      }))
+      .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
   columnOptionsEvaluating
@@ -91,6 +94,32 @@ const column = reactive({
   disabled: columnOptionsEvaluating
 });
 
+const additionalPlaceholder = computed(() =>
+  !column.selected ? 'First, select the main column' : 'Select additional columns'
+);
+const additionalOptions = computed(() => {
+  return columnOptions.value.filter(
+    (option) =>
+      !lodash.isEqual(option.value.columnId, column.selected?.columnId) &&
+      lodash.isEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec)
+  );
+});
+const additionalSelected = computed({
+  get: () => uiState.model.additionalColumns,
+  set: (idsAndSpecs) => {
+    uiState.model.additionalColumns = idsAndSpecs;
+    uiState.save();
+  }
+});
+const additionalDisabled = computed(() => !column.selected);
+const additional = reactive({
+  label: 'Additional columns',
+  placeholder: additionalPlaceholder,
+  options: additionalOptions,
+  selected: additionalSelected,
+  disabled: additionalDisabled
+});
+
 const enrichmentEvaluating = ref(false);
 const enrichmentPlaceholder = computed(() =>
   !column.selected
@@ -101,7 +130,7 @@ const enrichmentPlaceholder = computed(() =>
 );
 const enrichmentOptions = computedAsync(
   async () => {
-    if (!pFrame || !pFrame.value || !column.selected) return [];
+    if (!pFrame?.value || !column.selected) return [];
     const response = await pfDriver.findColumns(pFrame.value, {
       columnFilter: {},
       compatibleWith: column.selected.spec.axesSpec.map(
@@ -116,18 +145,25 @@ const enrichmentOptions = computedAsync(
               },
               {} as Record<string, string>
             )
-          }) as AxisId
+          }) satisfies AxisId
       ),
       strictlyCompatible: true
     });
     return response.hits
-      .filter((idAndSpec) => idAndSpec.columnId !== column.selected?.columnId)
+      .filter(
+        (idAndSpec) =>
+          !lodash.isEqual(idAndSpec.columnId, column.selected?.columnId) &&
+          lodash.findIndex(additional.options, (option) =>
+            lodash.isEqual(option.value.columnId, idAndSpec.columnId)
+          ) === -1
+      )
       .map((idAndSpec, i) => ({
-        text: (
-          idAndSpec.spec.annotations?.['pl7.app/label'] ?? 'Unlabelled column ' + i.toString()
-        ).trim(),
+        text:
+          idAndSpec.spec.annotations?.['pl7.app/label']?.trim() ??
+          'Unlabelled column ' + i.toString(),
         value: idAndSpec
-      }));
+      }))
+      .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
   enrichmentEvaluating
@@ -202,9 +238,9 @@ function getValueType(spec: PTableColumnSpec): ValueType {
 function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef {
   const colDef: ColDef = {
     field: colId,
-    headerName: (
-      spec.spec.annotations?.['pl7.app/label'] ?? 'Unlabeled ' + spec.type + ' ' + iCol.toString()
-    ).trim(),
+    headerName:
+      spec.spec.annotations?.['pl7.app/label']?.trim() ??
+      'Unlabeled ' + spec.type + ' ' + iCol.toString(),
     cellDataType: 'text',
     valueFormatter: (value) => {
       if (!value) {
@@ -313,20 +349,24 @@ async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<Ag
 }
 
 watch(
-  () => [columnSelected?.value, enrichmentSelected?.value] as const,
+  () =>
+    [
+      pFrame?.value,
+      columnSelected?.value,
+      additionalSelected.value,
+      enrichmentSelected.value
+    ] as const,
   async (state, prevState) => {
-    const [mainColumn, enrichmentColumns] = state;
-
-    if (prevState) {
-      const [oldMainColumn, oldEnrichmentColumns] = prevState;
-      if (mainColumn?.columnId === oldMainColumn?.columnId) {
-        const lhs = enrichmentColumns.map((column) => column.columnId).sort();
-        const rhs = oldEnrichmentColumns.map((column) => column.columnId).sort();
-        if (lodash.isEqual(lhs, rhs)) return;
-      }
+    if (lodash.isEqual(state, prevState)) {
+      return;
     }
 
-    if (!pFrame?.value || !mainColumn || !enrichmentColumns) {
+    const [pFrame, mainColumn, additionalColumns, enrichmentColumns] = state;
+    if (!pFrame) {
+      agData.value = undefined;
+      return;
+    }
+    if (!mainColumn) {
       agData.value = {
         colDefs: [],
         rowData: []
@@ -334,12 +374,23 @@ watch(
       return;
     }
 
-    const pTable = await pfDriver.calculateTableData(pFrame!.value, {
+    const pTable = await pfDriver.calculateTableData(pFrame, {
       src: {
         type: 'outer',
         primary: {
-          type: 'column',
-          column: mainColumn.columnId
+          type: 'full',
+          entries: additionalColumns
+            .map(
+              (column) =>
+                ({
+                  type: 'column',
+                  column: column.columnId
+                }) as const
+            )
+            .concat({
+              type: 'column',
+              column: mainColumn.columnId
+            })
         },
         secondary: enrichmentColumns.map((column) => ({
           type: 'column',
@@ -383,6 +434,14 @@ watch(
                   v-model="column.selected"
                   clearable
                   :disabled="column.disabled"
+                />
+                <PlDropdownMulti
+                  :label="additional.label"
+                  :placeholder="additional.placeholder"
+                  :options="additional.options"
+                  v-model="additional.selected"
+                  clearable
+                  :disabled="additional.disabled"
                 />
                 <PlDropdownMulti
                   :label="enrichment.label"
