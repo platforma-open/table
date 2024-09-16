@@ -81,6 +81,7 @@ const columnSelected = computed({
   get: () => uiState.model.mainColumn,
   set: (idAndSpec) => {
     uiState.model.mainColumn = idAndSpec;
+    uiState.model.additionalColumns = [];
     uiState.model.enrichmentColumns = [];
     uiState.model.gridState = undefined;
     uiState.save();
@@ -362,10 +363,8 @@ watch(
     }
 
     const [pFrame, mainColumn, additionalColumns, enrichmentColumns] = state;
-    if (!pFrame) {
-      agData.value = undefined;
-      return;
-    }
+    agData.value = undefined;
+    if (!pFrame) return;
     if (!mainColumn) {
       agData.value = {
         colDefs: [],
