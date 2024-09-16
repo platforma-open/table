@@ -39,8 +39,6 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
           return true;
         return false;
       });
-
-    if (pColumns.length === 0) return undefined;
     return ctx.createPFrame(pColumns);
   })
   .done();
