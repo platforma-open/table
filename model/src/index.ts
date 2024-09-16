@@ -12,6 +12,7 @@ export type BlockArgs = {};
 export type UiState = {
   settingsOpened: boolean;
   mainColumn?: PColumnIdAndSpec;
+  additionalColumns: PColumnIdAndSpec[];
   enrichmentColumns: PColumnIdAndSpec[];
   gridState?: GridState;
 };
