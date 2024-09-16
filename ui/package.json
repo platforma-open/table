@@ -19,7 +19,9 @@
     "@milaboratory/platforma-uikit": "catalog:",
     "@milaboratory/sdk-ui": "catalog:",
     "@milaboratory/sdk-vue": "catalog:",
+    "@types/lodash": "catalog:",
     "@vueuse/core": "catalog:",
+    "lodash": "catalog:",
     "vue": "catalog:"
   },
   "devDependencies": {

@@ -30,6 +30,7 @@ import {
   PValueBytes,
   PValueBytesNA
 } from '@milaboratory/sdk-ui';
+import * as lodash from 'lodash';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
@@ -150,7 +151,7 @@ const agData = ref<AgTableData>();
 const gridState = computed({
   get: () => uiState.model.gridState,
   set: (gridState) => {
-    if (JSON.stringify(gridState) != JSON.stringify(uiState.model.gridState)) {
+    if (!lodash.isEqual(gridState, uiState.model.gridState)) {
       uiState.model.gridState = gridState;
       uiState.save();
     }
@@ -178,7 +179,7 @@ const agReloadKey = ref(0);
 watch(
   () => gridState.value,
   (gridState) => {
-    if (JSON.stringify(gridState) != JSON.stringify(agGridApi?.getState())) {
+    if (!lodash.isEqual(gridState, agGridApi?.getState())) {
       agOptions.initialState = gridState;
       ++agReloadKey.value;
     }
@@ -316,16 +317,7 @@ watch(
       if (pFrame === oldPFrame && mainColumn?.columnId === oldMainColumn?.columnId) {
         const lhs = enrichmentColumns.map((column) => column.columnId).sort();
         const rhs = oldEnrichmentColumns.map((column) => column.columnId).sort();
-        if (lhs.length == rhs.length) {
-          let eq = true;
-          for (let i = 0; i < lhs.length; ++i) {
-            if (lhs[i] !== rhs[i]) {
-              eq = false;
-              break;
-            }
-          }
-          if (eq) return;
-        }
+        if (lodash.isEqual(lhs, rhs)) return;
       }
     }
 
