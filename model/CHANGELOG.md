@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.model
 
+## 0.1.3
+
+### Patch Changes
+
+- Additional columns selector
+
 ## 0.1.2
 
 ### Patch Changes
