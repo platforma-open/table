@@ -228,14 +228,6 @@ watch(
   }
 );
 
-function getValueType(spec: PTableColumnSpec): ValueType {
-  if (spec.type == 'axis') {
-    return spec.spec.type;
-  } else {
-    return spec.spec.valueType;
-  }
-}
-
 function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef {
   const colDef: ColDef = {
     field: colId,
@@ -254,15 +246,18 @@ function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef 
         return value.value.toString();
       }
     }
-    // filter: true
   };
 
   if (spec.type == 'axis') {
-    // colDef.pinned = 'left';
     colDef.lockPosition = true;
   }
 
-  const dataType = getValueType(spec);
+  let dataType: ValueType;
+  if (spec.type == 'axis') {
+    dataType = spec.spec.type;
+  } else {
+    dataType = spec.spec.valueType;
+  }
   if (dataType == 'Int' || dataType == 'Long' || dataType == 'Float' || dataType == 'Double') {
     colDef.cellDataType = 'number';
   }
@@ -288,24 +283,10 @@ function isValueNA(value: unknown, type: ValueType): boolean {
   }
 }
 
-class BooleanArrayView {
-  array: Uint8Array;
-
-  constructor(array: Uint8Array) {
-    this.array = array;
-
-    return new Proxy(this, {
-      get(target, prop) {
-        return prop in target ? target[prop as keyof typeof target] : target.get(Number(prop));
-      }
-    });
-  }
-
-  get(index: number): boolean {
-    const chunkIndex = Math.floor(index / 8);
-    const mask = 1 << (7 - (index % 8));
-    return (this.array[chunkIndex] & mask) > 0;
-  }
+function isValueAbsent(array: Uint8Array, index: number): boolean {
+  const chunkIndex = Math.floor(index / 8);
+  const mask = 1 << (7 - (index % 8));
+  return (array[chunkIndex] & mask) > 0;
 }
 
 async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<AgTableData> {
@@ -318,11 +299,6 @@ async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<Ag
     colDefs.push(getColDef(colId, columns[iCol].spec, iCol));
   }
 
-  const absenceReaders = [];
-  for (let iCol = 0; iCol < nCols; ++iCol) {
-    absenceReaders.push(new BooleanArrayView(columns[iCol].data.absent));
-  }
-
   const rowData = [];
   for (let iRow = 0; iRow < nRows; ++iRow) {
     const row: Record<string, any> = {};
@@ -331,15 +307,12 @@ async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<Ag
       const col = columns[iCol];
       const colId = iCol.toString();
       const value = col.data.data[iRow];
-      const dataType = getValueType(columns[iCol].spec);
-      if (absenceReaders[iCol].get(iRow)) {
+      if (isValueAbsent(columns[iCol].data.absent, iRow)) {
         row[colId] = null; // NULL
-      } else if (isValueNA(value, dataType)) {
+      } else if (isValueNA(value, columns[iCol].data.type)) {
         row[colId] = undefined; // NA
-      } else if (dataType === 'Long') {
-        row[colId] = Number(value);
       } else {
-        row[colId] = value;
+        row[colId] = columns[iCol].data.type === 'Long' ? Number(value) : value;
       }
     }
 
