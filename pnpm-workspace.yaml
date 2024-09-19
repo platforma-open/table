@@ -6,9 +6,6 @@ packages:
   - test
 
 catalog:
-  '@ag-grid-community/client-side-row-model': ^32.1.0
-  '@ag-grid-community/core': ^32.1.0
-  '@ag-grid-community/vue3': ^32.1.0
   '@changesets/cli': ^2.27.8
   '@milaboratory/pl-block-tools': ^2.1.5
   '@milaboratory/platforma-uikit': ^1.2.0

@@ -12,11 +12,11 @@
   "dependencies": {
     "@milaboratory/milaboratories.table.model": "workspace:*",
     "@milaboratory/milaboratories.table.ui": "workspace:*",
-    "@milaboratory/milaboratories.table.workflow": "workspace:*",
-    "@milaboratory/pl-block-tools": "catalog:"
+    "@milaboratory/milaboratories.table.workflow": "workspace:*"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "@milaboratory/pl-block-tools": "catalog:",
     "prettier": "catalog:"
   },
   "pnpm": {

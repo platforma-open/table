@@ -3,9 +3,10 @@ import {
   type InferOutputsType,
   type InferHrefType,
   isPColumn,
-  type PColumnIdAndSpec
+  type PColumnIdAndSpec,
+  type PlDataTableState,
+  type ValueType
 } from '@milaboratory/sdk-ui';
-import { type ColumnOrderState, type SortState } from '@ag-grid-community/core';
 
 export type BlockArgs = {};
 
@@ -14,10 +15,7 @@ export type UiState = {
   mainColumn?: PColumnIdAndSpec;
   additionalColumns: PColumnIdAndSpec[];
   enrichmentColumns: PColumnIdAndSpec[];
-  gridState: {
-    columnOrder?: ColumnOrderState;
-    sort?: SortState;
-  };
+  tableState: PlDataTableState;
 };
 
 export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
@@ -27,23 +25,53 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
     const collection = ctx.resultPool.getDataFromResultPool();
     if (collection === undefined || !collection.isComplete) return undefined;
 
+    const valueTypes = ['Int', 'Long', 'Float', 'Double', 'String', 'Bytes'] as ValueType[];
     const pColumns = collection.entries
       .map(({ obj }) => obj)
       .filter(isPColumn)
-      .filter((column) => {
-        const resourceType = column.data.resourceType;
-        if (resourceType.version !== '1') return false;
-        if (
-          resourceType.name === 'PColumnData/Json' ||
-          resourceType.name === 'PColumnData/JsonPartitioned' ||
-          resourceType.name === 'PColumnData/BinaryPartitioned' ||
-          resourceType.name === 'PColumnData/Partitioned/JsonPartitioned' ||
-          resourceType.name === 'PColumnData/Partitioned/BinaryPartitioned'
-        )
-          return true;
-        return false;
-      });
+      .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType));
     return ctx.createPFrame(pColumns);
+  })
+  .output('pTable', (ctx) => {
+    if (!ctx.uiState?.mainColumn) return undefined;
+    const primaryIds = [
+      ctx.uiState!.mainColumn.columnId,
+      ...ctx.uiState!.additionalColumns.map((idAndSpec) => idAndSpec.columnId)
+    ];
+    const secondaryIds = ctx.uiState!.enrichmentColumns.map((idAndSpec) => idAndSpec.columnId);
+
+    const collection = ctx.resultPool.getDataFromResultPool();
+    if (!collection || !collection.isComplete) return undefined;
+
+    const primaryColumns = collection.entries
+      .map(({ obj }) => obj)
+      .filter(isPColumn)
+      .filter((column) => !!primaryIds.find((id) => id === column.id));
+    const secondaryColumns = collection.entries
+      .map(({ obj }) => obj)
+      .filter(isPColumn)
+      .filter((column) => !!secondaryIds.find((id) => id === column.id));
+    return ctx.createPTable({
+      src: {
+        type: 'outer',
+        primary: {
+          type: 'full',
+          entries: primaryColumns.map(
+            (column) =>
+              ({
+                type: 'column',
+                column: column
+              }) as const
+          )
+        },
+        secondary: secondaryColumns.map((column) => ({
+          type: 'column',
+          column: column
+        }))
+      },
+      filters: [],
+      sorting: []
+    });
   })
   .done();
 

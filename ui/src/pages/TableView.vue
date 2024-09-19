@@ -3,52 +3,26 @@ import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
-import './ag-theme.css';
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import {
-  type ColDef,
-  ModuleRegistry,
-  type GridOptions,
-  type GridApi
-} from '@ag-grid-community/core';
-import { AgGridVue } from '@ag-grid-community/vue3';
 import {
   PlAlert,
   PlBtnSecondary,
   PlDropdown,
   PlDropdownMulti
 } from '@milaboratory/platforma-uikit';
-import {
-  type PTableColumnSpec,
-  type ValueType,
-  type FullPTableColumnData,
-  type AxisId,
-  PValueInt,
-  PValueIntNA,
-  PValueLongNA,
-  PValueFloat,
-  PValueFloatNA,
-  PValueDouble,
-  PValueDoubleNA,
-  PValueString,
-  PValueStringNA,
-  PValueBytes,
-  PValueBytesNA
-} from '@milaboratory/sdk-ui';
+import { type AxisId } from '@milaboratory/sdk-ui';
 import * as lodash from 'lodash';
+import { PlAgDataTable, type PlDataTableSettings } from '@milaboratory/sdk-vue';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
   additionalColumns: [],
   enrichmentColumns: [],
-  gridState: {}
+  tableState: { gridState: {} }
 }));
 
 const pfDriver = model.pFrameDriver;
 const pFrame = computed(() => app.getOutputFieldOkOptional('pFrame'));
-
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
@@ -84,7 +58,7 @@ const columnSelected = computed({
     uiState.model.mainColumn = idAndSpec;
     uiState.model.additionalColumns = [];
     uiState.model.enrichmentColumns = [];
-    uiState.model.gridState = {};
+    uiState.model.tableState = { gridState: {} };
     uiState.save();
   }
 });
@@ -186,206 +160,41 @@ const enrichment = reactive({
   disabled: enrichmentDisabled
 });
 
-type AgTableData = {
-  colDefs: ColDef[];
-  rowData: any[];
-};
-const agData = ref<AgTableData>();
-const gridState = computed({
-  get: () => uiState.model.gridState,
-  set: (gridState) => {
-    if (!lodash.isEqual(gridState, uiState.model.gridState)) {
-      uiState.model.gridState = gridState;
+const tableState = computed({
+  get: () => uiState.model.tableState,
+  set: (tableState) => {
+    if (!lodash.isEqual(tableState, uiState.model.tableState)) {
+      uiState.model.tableState = tableState;
       uiState.save();
     }
   }
 });
-let agGridApi: GridApi | undefined = undefined;
-const agOptions: GridOptions = {
-  animateRows: false,
-  suppressColumnMoveAnimation: true,
-  initialState: gridState.value,
-  onGridReady: (event) => {
-    agGridApi = event.api;
-  },
-  onStateUpdated: (event) => {
-    gridState.value = {
-      columnOrder: event.state.columnOrder,
-      sort: event.state.sort
-    };
-  },
-  autoSizeStrategy: {
-    type: 'fitCellContents'
-  },
-  onRowDataUpdated: (event) => {
-    event.api.autoSizeAllColumns();
-  }
-};
-const agReloadKey = ref(0);
-watch(
-  () => gridState.value,
-  (gridState) => {
-    if (!agGridApi) return;
-    const selfState = agGridApi.getState();
-    if (
-      !lodash.isEqual(gridState.columnOrder, selfState.columnOrder) ||
-      !lodash.isEqual(gridState.sort, selfState.sort)
-    ) {
-      agGridApi.setGridOption;
-      agOptions.initialState = gridState;
-      ++agReloadKey.value;
-    }
-  }
-);
-
-function getColDef(colId: string, spec: PTableColumnSpec, iCol: number): ColDef {
-  const colDef: ColDef = {
-    field: colId,
-    headerName:
-      spec.spec.annotations?.['pl7.app/label']?.trim() ??
-      'Unlabeled ' + spec.type + ' ' + iCol.toString(),
-    cellDataType: 'text',
-    valueFormatter: (value) => {
-      if (!value) {
-        return 'ERROR';
-      } else if (value.value === null) {
-        return 'NULL';
-      } else if (value.value === undefined) {
-        return 'NA';
-      } else {
-        return value.value.toString();
-      }
-    }
-  };
-
-  if (spec.type == 'axis') {
-    colDef.lockPosition = true;
-  }
-
-  let dataType: ValueType;
-  if (spec.type == 'axis') {
-    dataType = spec.spec.type;
-  } else {
-    dataType = spec.spec.valueType;
-  }
-  if (dataType == 'Int' || dataType == 'Long' || dataType == 'Float' || dataType == 'Double') {
-    colDef.cellDataType = 'number';
-  }
-
-  return colDef;
-}
-
-function isValueNA(value: unknown, type: ValueType): boolean {
-  if (type == 'Int') {
-    return (value as PValueInt) === PValueIntNA;
-  } else if (type == 'Long') {
-    return (value as BigInt) === PValueLongNA;
-  } else if (type == 'Float') {
-    return (value as PValueFloat) === PValueFloatNA;
-  } else if (type == 'Double') {
-    return (value as PValueDouble) === PValueDoubleNA;
-  } else if (type == 'String') {
-    return (value as PValueString) === PValueStringNA;
-  } else if (type == 'Bytes') {
-    return (value as PValueBytes) === PValueBytesNA;
-  } else {
-    throw Error('Unsupported value type: ' + type);
-  }
-}
-
-function isValueAbsent(array: Uint8Array, index: number): boolean {
-  const chunkIndex = Math.floor(index / 8);
-  const mask = 1 << (7 - (index % 8));
-  return (array[chunkIndex] & mask) > 0;
-}
-
-async function calculateAgTableData(columns: FullPTableColumnData[]): Promise<AgTableData> {
-  const nCols = columns.length;
-  const nRows = columns[0].data.data.length;
-
-  const colDefs = [];
-  for (let iCol = 0; iCol < nCols; ++iCol) {
-    const colId = iCol.toString();
-    colDefs.push(getColDef(colId, columns[iCol].spec, iCol));
-  }
-
-  const rowData = [];
-  for (let iRow = 0; iRow < nRows; ++iRow) {
-    const row: Record<string, any> = {};
-
-    for (let iCol = 0; iCol < nCols; ++iCol) {
-      const col = columns[iCol];
-      const colId = iCol.toString();
-      const value = col.data.data[iRow];
-      if (isValueAbsent(columns[iCol].data.absent, iRow)) {
-        row[colId] = null; // NULL
-      } else if (isValueNA(value, columns[iCol].data.type)) {
-        row[colId] = undefined; // NA
-      } else {
-        row[colId] = columns[iCol].data.type === 'Long' ? Number(value) : value;
-      }
-    }
-
-    rowData.push(row);
-  }
-
-  return { colDefs, rowData };
-}
-
-watch(
+const tableSettings = computed(
   () =>
-    [
-      pFrame?.value,
-      columnSelected?.value,
-      additionalSelected.value,
-      enrichmentSelected.value
-    ] as const,
-  async (state, prevState) => {
-    if (lodash.isEqual(state, prevState)) {
-      return;
-    }
-
-    const [pFrame, mainColumn, additionalColumns, enrichmentColumns] = state;
-    agData.value = undefined;
-    if (!pFrame) return;
-    if (!mainColumn) {
-      agData.value = {
-        colDefs: [],
-        rowData: []
-      };
-      return;
-    }
-
-    const pTable = await pfDriver.calculateTableData(pFrame, {
-      src: {
-        type: 'outer',
-        primary: {
-          type: 'full',
-          entries: additionalColumns
-            .map(
-              (column) =>
-                ({
-                  type: 'column',
-                  column: column.columnId
-                }) as const
-            )
-            .concat({
-              type: 'column',
-              column: mainColumn.columnId
-            })
-        },
-        secondary: enrichmentColumns.map((column) => ({
-          type: 'column',
-          column: column.columnId
-        }))
-      },
-      filters: [],
-      sorting: []
-    });
-    agData.value = await calculateAgTableData(pTable);
-  },
-  { immediate: true }
+    ({
+      sourceType: 'pframe',
+      pTable: app.outputs.pTable
+    }) satisfies PlDataTableSettings
 );
+const tableReloadKey = ref(0);
+watch(
+  () => tableSettings,
+  (state, oldState) => {
+    if (!lodash.isEqual(state, oldState)) {
+      ++tableReloadKey.value;
+    }
+  }
+);
+// const agOptions: GridOptions = {
+//   animateRows: false,
+//   suppressColumnMoveAnimation: true,
+//   autoSizeStrategy: {
+//     type: 'fitCellContents'
+//   },
+//   onRowDataUpdated: (event) => {
+//     event.api.autoSizeAllColumns();
+//   }
+// };
 </script>
 
 <template>
@@ -397,13 +206,7 @@ watch(
     </Transition>
     <div class="container">
       <div class="table-container">
-        <AgGridVue
-          :gridOptions="agOptions"
-          :columnDefs="agData?.colDefs"
-          :rowData="agData?.rowData"
-          style="height: 100%"
-          :key="agReloadKey"
-        />
+        <PlAgDataTable :modelValue="tableState" :settings="tableSettings" :key="tableReloadKey" />
         <div class="overlay">
           <Transition name="settings-transition">
             <div class="settings-panel" v-if="settingsOpened">

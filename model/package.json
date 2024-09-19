@@ -13,7 +13,6 @@
     "build": "tsup && vite build && block-tools build-model"
   },
   "dependencies": {
-    "@ag-grid-community/core": "catalog:",
     "@milaboratory/sdk-ui": "catalog:"
   },
   "devDependencies": {
