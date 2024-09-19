@@ -5,7 +5,7 @@ import {
   isPColumn,
   type PColumnIdAndSpec
 } from '@milaboratory/sdk-ui';
-import { type GridState } from '@ag-grid-community/core';
+import { type ColumnOrderState, type SortState } from '@ag-grid-community/core';
 
 export type BlockArgs = {};
 
@@ -14,7 +14,10 @@ export type UiState = {
   mainColumn?: PColumnIdAndSpec;
   additionalColumns: PColumnIdAndSpec[];
   enrichmentColumns: PColumnIdAndSpec[];
-  gridState?: GridState;
+  gridState: {
+    columnOrder?: ColumnOrderState;
+    sort?: SortState;
+  };
 };
 
 export const model = BlockModel.create<BlockArgs, UiState>('Heavy')

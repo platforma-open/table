@@ -1,5 +1,13 @@
 # @milaboratory/milaboratories.table.ui
 
+## 0.1.5
+
+### Patch Changes
+
+- Css fix
+- Updated dependencies
+  - @milaboratory/milaboratories.table.model@0.1.5
+
 ## 0.1.4
 
 ### Patch Changes

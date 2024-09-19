@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.workflow
 
+## 0.1.5
+
+### Patch Changes
+
+- Css fix
+
 ## 0.1.4
 
 ### Patch Changes
