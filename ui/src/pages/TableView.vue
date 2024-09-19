@@ -41,7 +41,8 @@ const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
   additionalColumns: [],
-  enrichmentColumns: []
+  enrichmentColumns: [],
+  gridState: {}
 }));
 
 const pfDriver = model.pFrameDriver;
@@ -83,7 +84,7 @@ const columnSelected = computed({
     uiState.model.mainColumn = idAndSpec;
     uiState.model.additionalColumns = [];
     uiState.model.enrichmentColumns = [];
-    uiState.model.gridState = undefined;
+    uiState.model.gridState = {};
     uiState.save();
   }
 });
@@ -208,7 +209,10 @@ const agOptions: GridOptions = {
     agGridApi = event.api;
   },
   onStateUpdated: (event) => {
-    gridState.value = event.state;
+    gridState.value = {
+      columnOrder: event.state.columnOrder,
+      sort: event.state.sort
+    };
   },
   autoSizeStrategy: {
     type: 'fitCellContents'
@@ -221,7 +225,13 @@ const agReloadKey = ref(0);
 watch(
   () => gridState.value,
   (gridState) => {
-    if (!lodash.isEqual(gridState, agGridApi?.getState())) {
+    if (!agGridApi) return;
+    const selfState = agGridApi.getState();
+    if (
+      !lodash.isEqual(gridState.columnOrder, selfState.columnOrder) ||
+      !lodash.isEqual(gridState.sort, selfState.sort)
+    ) {
+      agGridApi.setGridOption;
       agOptions.initialState = gridState;
       ++agReloadKey.value;
     }
@@ -386,7 +396,7 @@ watch(
       </PlAlert>
     </Transition>
     <div class="container">
-      <div style="flex: 1">
+      <div class="table-container">
         <AgGridVue
           :gridOptions="agOptions"
           :columnDefs="agData?.colDefs"
@@ -462,10 +472,14 @@ watch(
   flex: 1;
   gap: 12px;
 }
-.overlay {
+.table-container {
+  flex: 1;
   position: relative;
+}
+.overlay {
+  position: absolute;
   z-index: 2;
-  inset: calc(-100% + 68px) 0 0 0;
+  top: 68px;
   display: flex;
   flex-direction: row-reverse;
   width: calc(100% + 74px);
