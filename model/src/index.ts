@@ -47,10 +47,14 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
       .map(({ obj }) => obj)
       .filter(isPColumn)
       .filter((column) => !!primaryIds.find((id) => id === column.id));
+    if (primaryColumns.length !== primaryIds.length) return undefined;
+
     const secondaryColumns = collection.entries
       .map(({ obj }) => obj)
       .filter(isPColumn)
       .filter((column) => !!secondaryIds.find((id) => id === column.id));
+    if (secondaryColumns.length !== secondaryIds.length) return undefined;
+
     return ctx.createPTable({
       src: {
         type: 'outer',
