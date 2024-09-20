@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.ui
 
+## 0.2.0
+
+### Minor Changes
+
+- Migrated to PlAgTadaTable
+
 ## 0.1.5
 
 ### Patch Changes
