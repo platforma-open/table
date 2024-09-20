@@ -17,6 +17,7 @@
     "@milaboratory/sdk-ui": "catalog:",
     "@milaboratory/sdk-vue": "catalog:",
     "@types/lodash": "catalog:",
+    "@types/node": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
     "@vueuse/core": "catalog:",
     "lodash": "catalog:",
