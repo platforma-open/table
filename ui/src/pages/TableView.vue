@@ -9,20 +9,46 @@ import {
   PlDropdown,
   PlDropdownMulti
 } from '@milaboratory/platforma-uikit';
-import { type AxisId } from '@milaboratory/sdk-ui';
+import {
+  type ValueType,
+  type PValueInt,
+  PValueIntNA,
+  PValueLongNA,
+  type PValueFloat,
+  PValueFloatNA,
+  type PValueDouble,
+  PValueDoubleNA,
+  type PValueString,
+  PValueStringNA,
+  type PValueBytes,
+  PValueBytesNA,
+  type AxisId
+} from '@milaboratory/sdk-ui';
 import * as lodash from 'lodash';
-import { PlAgDataTable, type PlDataTableSettings } from '@milaboratory/sdk-vue';
+import {
+  PlAgDataTable,
+  type PlDataTableSheet,
+  type PlDataTableSettings
+} from '@milaboratory/sdk-vue';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
   additionalColumns: [],
   enrichmentColumns: [],
-  tableState: { gridState: {} }
+  partitioningAxes: [],
+  tableState: {
+    gridState: {},
+    pTableParams: {
+      sorting: [],
+      filters: []
+    }
+  }
 }));
 
 const pfDriver = model.pFrameDriver;
 const pFrame = computed(() => app.getOutputFieldOkOptional('pFrame'));
+const pTable = computed(() => app.getOutputFieldOkOptional('pTable'));
 
 const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
@@ -38,7 +64,7 @@ const columnPlaceholder = computed(() =>
 );
 const columnOptions = computedAsync(
   async () => {
-    if (!pFrame?.value) return [];
+    if (!pFrame.value) return [];
     const columns = await pfDriver.listColumns(pFrame.value);
     return columns
       .map((idAndSpec, i) => ({
@@ -58,7 +84,14 @@ const columnSelected = computed({
     uiState.model.mainColumn = idAndSpec;
     uiState.model.additionalColumns = [];
     uiState.model.enrichmentColumns = [];
-    uiState.model.tableState = { gridState: {} };
+    uiState.model.partitioningAxes = [];
+    uiState.model.tableState = {
+      gridState: {},
+      pTableParams: {
+        sorting: [],
+        filters: []
+      }
+    };
     uiState.save();
   }
 });
@@ -106,7 +139,7 @@ const enrichmentPlaceholder = computed(() =>
 );
 const enrichmentOptions = computedAsync(
   async () => {
-    if (!pFrame?.value || !column.selected) return [];
+    if (!pFrame.value || !column.selected) return [];
     const response = await pfDriver.findColumns(pFrame.value, {
       columnFilter: {},
       compatibleWith: column.selected.spec.axesSpec.map(
@@ -160,6 +193,128 @@ const enrichment = reactive({
   disabled: enrichmentDisabled
 });
 
+function isValueNA(value: unknown, valueType: ValueType): boolean {
+  switch (valueType) {
+    case 'Int':
+      return (value as PValueInt) === PValueIntNA;
+    case 'Long':
+      return (value as bigint) === PValueLongNA;
+    case 'Float':
+      return (value as PValueFloat) === PValueFloatNA;
+    case 'Double':
+      return (value as PValueDouble) === PValueDoubleNA;
+    case 'String':
+      return (value as PValueString) === PValueStringNA;
+    case 'Bytes':
+      return (value as PValueBytes) === PValueBytesNA;
+    default:
+      throw Error(`unsupported data type: ${valueType satisfies never}`);
+  }
+}
+
+function toDisplayValue(
+  value: string | number | bigint | Uint8Array,
+  valueType: ValueType
+): string | number {
+  switch (valueType) {
+    case 'Int':
+      return value as number;
+    case 'Long':
+      return Number(value as bigint);
+    case 'Float':
+      return value as number;
+    case 'Double':
+      return value as number;
+    case 'String':
+      return value as string;
+    case 'Bytes':
+      return Buffer.from(value as Uint8Array).toString('hex');
+    default:
+      throw Error(`unsupported data type: ${valueType satisfies never}`);
+  }
+}
+
+const partitioningEvaluating = ref(false);
+const partitioningPlaceholder = computed(() =>
+  !column.selected
+    ? 'First, select the main column'
+    : partitioningEvaluating.value
+      ? 'Loading axes...'
+      : 'Select axes for partitioning'
+);
+const partitioningOptions = computedAsync(
+  async () => {
+    if (!column.selected) return [];
+
+    const pFrameHandle = pFrame.value;
+    if (!pFrameHandle) return [];
+
+    const pTableHandle = pTable.value;
+    if (!pTableHandle) return [];
+
+    const tableSpec = await pfDriver.getSpec(pTableHandle);
+    const axes = tableSpec
+      .filter((spec) => spec.type === 'axis')
+      .filter((spec) => spec.spec.type !== 'Bytes');
+
+    const possibleValues: Set<string | number>[] = axes.map((_) => new Set());
+    for (const idAndSpec of [column.selected, ...additional.selected]) {
+      for (const columnAxis of idAndSpec.spec.axesSpec) {
+        const i = lodash.findIndex(axes, (axis) => lodash.isEqual(axis.spec, columnAxis));
+        if (i === -1) continue;
+
+        const response = await pfDriver.getUniqueValues(pFrameHandle, {
+          columnId: idAndSpec.columnId,
+          axis: axes[i].id,
+          filters: [],
+          limit: Number.MAX_SAFE_INTEGER
+        });
+
+        const valueType = response.values.type;
+        for (const value of response.values.data) {
+          if (isValueNA(value, valueType) || value === null) continue;
+          possibleValues[i].add(toDisplayValue(value, valueType));
+        }
+      }
+    }
+
+    return axes
+      .filter((_, i) => possibleValues[i].size !== 0)
+      .map((axis, i) => ({
+        text: axis.spec.annotations?.['pl7.app/label']?.trim() ?? 'Unlabelled axis ' + i.toString(),
+        value: {
+          axis: axis.id,
+          options: [...possibleValues[i]].map((value) => ({
+            value: value,
+            text: value.toString()
+          }))
+        } as PlDataTableSheet
+      }))
+      .map((option) => {
+        option.value.defaultValue = option.value.options[0].value;
+        return option;
+      });
+  },
+  [],
+  partitioningEvaluating
+);
+const partitioningSelected = computed({
+  get: () => uiState.model.partitioningAxes,
+  set: (partitioningAxes) => {
+    // TODO: before saving, sort in order the axes are displayed
+    uiState.model.partitioningAxes = partitioningAxes;
+    uiState.save();
+  }
+});
+const partitioningDisabled = computed(() => !column.selected && !partitioningEvaluating.value);
+const partitioning = reactive({
+  label: 'Axes for partitioning',
+  placeholder: partitioningPlaceholder,
+  options: partitioningOptions,
+  selected: partitioningSelected,
+  disabled: partitioningDisabled
+});
+
 const tableState = computed({
   get: () => uiState.model.tableState,
   set: (tableState) => {
@@ -173,7 +328,8 @@ const tableSettings = computed(
   () =>
     ({
       sourceType: 'ptable',
-      pTable: app.outputs.pTable
+      pTable: app.outputs.pTable,
+      sheets: partitioningSelected.value
     }) satisfies PlDataTableSettings
 );
 </script>
@@ -216,6 +372,14 @@ const tableSettings = computed(
                   v-model="enrichment.selected"
                   clearable
                   :disabled="enrichment.disabled"
+                />
+                <PlDropdownMulti
+                  :label="partitioning.label"
+                  :placeholder="partitioning.placeholder"
+                  :options="partitioning.options"
+                  v-model="partitioning.selected"
+                  clearable
+                  :disabled="partitioning.disabled"
                 />
               </form>
             </div>

@@ -7,6 +7,7 @@ import {
   type PlDataTableState,
   type ValueType
 } from '@milaboratory/sdk-ui';
+import { type PlDataTableSheet } from '@milaboratory/sdk-vue';
 
 export type BlockArgs = {};
 
@@ -15,6 +16,7 @@ export type UiState = {
   mainColumn?: PColumnIdAndSpec;
   additionalColumns: PColumnIdAndSpec[];
   enrichmentColumns: PColumnIdAndSpec[];
+  partitioningAxes: PlDataTableSheet[];
   tableState: PlDataTableState;
 };
 

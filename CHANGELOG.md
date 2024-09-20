@@ -1,5 +1,15 @@
 # @milaboratory/milaboratories.table
 
+## 0.2.2
+
+### Patch Changes
+
+- Initial partitioning support
+- Updated dependencies
+  - @milaboratory/milaboratories.table.model@0.2.2
+  - @milaboratory/milaboratories.table.ui@0.2.2
+  - @milaboratory/milaboratories.table.workflow@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes

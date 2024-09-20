@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.ui
 
+## 0.2.2
+
+### Patch Changes
+
+- Initial partitioning support
+
 ## 0.2.1
 
 ### Patch Changes
