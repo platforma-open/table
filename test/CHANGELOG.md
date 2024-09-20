@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.test
 
+## 0.2.1
+
+### Patch Changes
+
+- Wait for results before building ptable
+
 ## 0.2.0
 
 ### Minor Changes

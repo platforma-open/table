@@ -1,5 +1,15 @@
 # @milaboratory/milaboratories.table
 
+## 0.2.1
+
+### Patch Changes
+
+- Wait for results before building ptable
+- Updated dependencies
+  - @milaboratory/milaboratories.table.workflow@0.2.1
+  - @milaboratory/milaboratories.table.model@0.2.1
+  - @milaboratory/milaboratories.table.ui@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
