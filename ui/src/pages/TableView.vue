@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, reactive, watch } from 'vue';
+import { computed, ref, reactive } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
@@ -172,29 +172,10 @@ const tableState = computed({
 const tableSettings = computed(
   () =>
     ({
-      sourceType: 'pframe',
+      sourceType: 'ptable',
       pTable: app.outputs.pTable
     }) satisfies PlDataTableSettings
 );
-const tableReloadKey = ref(0);
-watch(
-  () => tableSettings,
-  (state, oldState) => {
-    if (!lodash.isEqual(state, oldState)) {
-      ++tableReloadKey.value;
-    }
-  }
-);
-// const agOptions: GridOptions = {
-//   animateRows: false,
-//   suppressColumnMoveAnimation: true,
-//   autoSizeStrategy: {
-//     type: 'fitCellContents'
-//   },
-//   onRowDataUpdated: (event) => {
-//     event.api.autoSizeAllColumns();
-//   }
-// };
 </script>
 
 <template>
@@ -206,7 +187,7 @@ watch(
     </Transition>
     <div class="container">
       <div class="table-container">
-        <PlAgDataTable :modelValue="tableState" :settings="tableSettings" :key="tableReloadKey" />
+        <PlAgDataTable v-model="tableState" :settings="tableSettings" />
         <div class="overlay">
           <Transition name="settings-transition">
             <div class="settings-panel" v-if="settingsOpened">
@@ -252,7 +233,7 @@ watch(
   </div>
 </template>
 
-<style lang="css">
+<style lang="css" scoped>
 .box {
   display: flex;
   flex-direction: column;

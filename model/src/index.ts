@@ -69,8 +69,8 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
           column: column
         }))
       },
-      filters: [],
-      sorting: []
+      filters: ctx.uiState.tableState.pTableParams?.filters ?? [],
+      sorting: ctx.uiState.tableState.pTableParams?.sorting ?? []
     });
   })
   .done();
