@@ -6,15 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@ag-grid-community/client-side-row-model':
-      specifier: ^32.1.0
-      version: 32.1.0
-    '@ag-grid-community/core':
-      specifier: ^32.1.0
-      version: 32.1.0
-    '@ag-grid-community/vue3':
-      specifier: ^32.1.0
-      version: 32.1.0
     '@changesets/cli':
       specifier: ^2.27.8
       version: 2.27.8
@@ -28,11 +19,11 @@ catalogs:
       specifier: ^1.5.5
       version: 1.5.5
     '@milaboratory/sdk-ui':
-      specifier: ^0.12.22
-      version: 0.12.22
+      specifier: ^0.13.0
+      version: 0.13.0
     '@milaboratory/sdk-vue':
-      specifier: ^1.2.0
-      version: 1.2.0
+      specifier: ^1.3.0
+      version: 1.3.0
     '@milaboratory/tengo-sdk':
       specifier: ^1.2.4
       version: 1.2.4
@@ -86,25 +77,22 @@ importers:
       '@milaboratory/milaboratories.table.workflow':
         specifier: workspace:*
         version: link:workflow
-      '@milaboratory/pl-block-tools':
-        specifier: 'catalog:'
-        version: 2.1.5
     devDependencies:
       '@changesets/cli':
         specifier: 'catalog:'
         version: 2.27.8
+      '@milaboratory/pl-block-tools':
+        specifier: 'catalog:'
+        version: 2.1.5
       prettier:
         specifier: 'catalog:'
         version: 3.3.3
 
   model:
     dependencies:
-      '@ag-grid-community/core':
-        specifier: 'catalog:'
-        version: 32.1.0
       '@milaboratory/sdk-ui':
         specifier: 'catalog:'
-        version: 0.12.22
+        version: 0.13.0
     devDependencies:
       '@milaboratory/pl-block-tools':
         specifier: 'catalog:'
@@ -136,16 +124,7 @@ importers:
         version: 2.1.1(@types/node@22.5.4)
 
   ui:
-    dependencies:
-      '@ag-grid-community/client-side-row-model':
-        specifier: 'catalog:'
-        version: 32.1.0
-      '@ag-grid-community/core':
-        specifier: 'catalog:'
-        version: 32.1.0
-      '@ag-grid-community/vue3':
-        specifier: 'catalog:'
-        version: 32.1.0(typescript@5.6.2)
+    devDependencies:
       '@milaboratory/milaboratories.table.model':
         specifier: workspace:*
         version: link:../model
@@ -154,32 +133,31 @@ importers:
         version: 1.2.0(typescript@5.6.2)
       '@milaboratory/sdk-ui':
         specifier: 'catalog:'
-        version: 0.12.22
+        version: 0.13.0
       '@milaboratory/sdk-vue':
         specifier: 'catalog:'
-        version: 1.2.0(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.12.22)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))
+        version: 1.3.0(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))
       '@types/lodash':
         specifier: 'catalog:'
         version: 4.17.7
+      '@vitejs/plugin-vue':
+        specifier: 'catalog:'
+        version: 5.1.4(vite@5.4.6(@types/node@22.5.4))(vue@3.5.6(typescript@5.6.2))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 11.1.0(vue@3.5.6(typescript@5.6.2))
       lodash:
         specifier: 'catalog:'
         version: 4.17.21
-      vue:
-        specifier: 'catalog:'
-        version: 3.5.6(typescript@5.6.2)
-    devDependencies:
-      '@vitejs/plugin-vue':
-        specifier: 'catalog:'
-        version: 5.1.4(vite@5.4.6(@types/node@22.5.4))(vue@3.5.6(typescript@5.6.2))
       typescript:
         specifier: 'catalog:'
         version: 5.6.2
       vite:
         specifier: 'catalog:'
         version: 5.4.6(@types/node@22.5.4)
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.6(typescript@5.6.2)
       vue-tsc:
         specifier: 'catalog:'
         version: 2.1.6(typescript@5.6.2)
@@ -194,15 +172,6 @@ importers:
         version: 1.14.4
 
 packages:
-
-  '@ag-grid-community/client-side-row-model@32.1.0':
-    resolution: {integrity: sha512-R/IA3chA/w9fy6/EeZhi42PTwVnb6bNjGMah1GWGvuNDTvfbPO4X9r4nhOMj6YH483bO+C7pPb4EoLECx0dfRQ==}
-
-  '@ag-grid-community/core@32.1.0':
-    resolution: {integrity: sha512-fHpgSZa/aBjg2DdOzooDxILFZqxmxP8vsjRfeZVtqby19mTKwNAclE7Z6rWzOA0GYjgN9s8JwLFcNA5pvfswMg==}
-
-  '@ag-grid-community/vue3@32.1.0':
-    resolution: {integrity: sha512-X8kbFxDLmDyH0BtYJpwMC/ta8QdKeEpnryiwwLndoKnVaEFQGP4U/CIvEo0n/+eEoN7/VWiKKkT+lC33zj8QTQ==}
 
   '@aws-crypto/crc32@5.2.0':
     resolution: {integrity: sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg==}
@@ -848,11 +817,14 @@ packages:
   '@milaboratory/sdk-ui@0.12.22':
     resolution: {integrity: sha512-VHNodNe7do0h7+lZbsCmpULcvta66dtjT3vggHPgfKucYWI1GjqaX43kEXTGe52IZ5VOi++RjXcHNwScwes0wQ==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-ui/0.12.22/158075e40b60bdb72832ceadd9ab64b88727b0cc}
 
-  '@milaboratory/sdk-vue@1.2.0':
-    resolution: {integrity: sha512-RkyeizbE2+keTVmbZmrA5aZKiLFrS7JwQDsdud7+P5nsEEJEX6stckrTjkhx/zc96TiFTkcdpO9xVdpfhX/ORg==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-vue/1.2.0/bde913aa2a9863209f90e877a07231ed268c3ffe}
+  '@milaboratory/sdk-ui@0.13.0':
+    resolution: {integrity: sha512-rQy0WmtTjr3UUqAXFazmo2CxAkqtq+JbCpj0axeO7KLKXQvEj7Xp57m2kt8iXGFVE9hirhBCYW8dwTYf3Lu89g==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-ui/0.13.0/7bb295ad199762c25726e52aa6129feb6bc6c2e1}
+
+  '@milaboratory/sdk-vue@1.3.0':
+    resolution: {integrity: sha512-TC91PZ11uEa4tQ9cDIpLOkJ8/aO8lLb7SiyTu5g5dDRkUiGxzPlvQIj3+Bahp06pX9C8pZkwUCuPDGS1pAgPag==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-vue/1.3.0/82208b4b32e931f1213a8f792cb18bb3785233aa}
     peerDependencies:
       '@milaboratory/helpers': ^1.5.3
-      '@milaboratory/sdk-ui': ^0.12.22
+      '@milaboratory/sdk-ui': ^0.13.0
       vue: ^3.4.31
 
   '@milaboratory/tengo-sdk@1.2.2':
@@ -1376,9 +1348,6 @@ packages:
 
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
-
-  ag-charts-types@10.1.0:
-    resolution: {integrity: sha512-pk9ft8hbgTXJ/thI/SEUR1BoauNplYExpcHh7tMOqVikoDsta1O15TB1ZL4XWnl4TPIzROBmONKsz7d8a2HBuQ==}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -2842,23 +2811,6 @@ packages:
 
 snapshots:
 
-  '@ag-grid-community/client-side-row-model@32.1.0':
-    dependencies:
-      '@ag-grid-community/core': 32.1.0
-      tslib: 2.7.0
-
-  '@ag-grid-community/core@32.1.0':
-    dependencies:
-      ag-charts-types: 10.1.0
-      tslib: 2.7.0
-
-  '@ag-grid-community/vue3@32.1.0(typescript@5.6.2)':
-    dependencies:
-      '@ag-grid-community/core': 32.1.0
-      vue: 3.5.6(typescript@5.6.2)
-    transitivePeerDependencies:
-      - typescript
-
   '@aws-crypto/crc32@5.2.0':
     dependencies:
       '@aws-crypto/util': 5.2.0
@@ -3925,11 +3877,17 @@ snapshots:
       utility-types: 3.11.0
       zod: 3.23.8
 
-  '@milaboratory/sdk-vue@1.2.0(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.12.22)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))':
+  '@milaboratory/sdk-ui@0.13.0':
+    dependencies:
+      '@milaboratory/sdk-model': 1.3.9
+      utility-types: 3.11.0
+      zod: 3.23.8
+
+  '@milaboratory/sdk-vue@1.3.0(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))':
     dependencies:
       '@milaboratory/helpers': 1.5.3
       '@milaboratory/platforma-uikit': 1.2.0(typescript@5.6.2)
-      '@milaboratory/sdk-ui': 0.12.22
+      '@milaboratory/sdk-ui': 0.13.0
       vue: 3.5.6(typescript@5.6.2)
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu': 4.9.5
@@ -4648,8 +4606,6 @@ snapshots:
       - vue
 
   abbrev@1.1.1: {}
-
-  ag-charts-types@10.1.0: {}
 
   agent-base@6.0.2:
     dependencies:

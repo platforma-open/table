@@ -1,5 +1,18 @@
 # @milaboratory/milaboratories.table
 
+## 0.2.0
+
+### Minor Changes
+
+- Migrated to PlAgTadaTable
+
+### Patch Changes
+
+- Updated dependencies
+  - @milaboratory/milaboratories.table.model@0.2.0
+  - @milaboratory/milaboratories.table.ui@0.2.0
+  - @milaboratory/milaboratories.table.workflow@0.2.0
+
 ## 0.1.5
 
 ### Patch Changes

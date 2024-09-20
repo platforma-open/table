@@ -1,6 +1,6 @@
 {
   "name": "@milaboratory/milaboratories.table.ui",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "type": "module",
   "files": [
     "dist/**/*"
@@ -11,23 +11,18 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "@ag-grid-community/client-side-row-model": "catalog:",
-    "@ag-grid-community/core": "catalog:",
-    "@ag-grid-community/vue3": "catalog:",
+  "devDependencies": {
     "@milaboratory/milaboratories.table.model": "workspace:*",
     "@milaboratory/platforma-uikit": "catalog:",
     "@milaboratory/sdk-ui": "catalog:",
     "@milaboratory/sdk-vue": "catalog:",
     "@types/lodash": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
     "@vueuse/core": "catalog:",
     "lodash": "catalog:",
-    "vue": "catalog:"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
+    "vue": "catalog:",
     "vue-tsc": "catalog:"
   }
 }
