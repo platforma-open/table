@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.workflow
 
+## 0.2.3
+
+### Patch Changes
+
+- Preserve sheet selectors order
+
 ## 0.2.2
 
 ### Patch Changes

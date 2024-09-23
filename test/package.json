@@ -1,7 +1,7 @@
 {
   "name": "@milaboratory/milaboratories.table.test",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Block tests",
   "type": "module",
   "scripts": {
