@@ -22,8 +22,8 @@ catalogs:
       specifier: ^0.13.0
       version: 0.13.0
     '@milaboratory/sdk-vue':
-      specifier: ^1.3.2
-      version: 1.3.2
+      specifier: ^1.3.4
+      version: 1.3.4
     '@milaboratory/tengo-sdk':
       specifier: ^1.2.4
       version: 1.2.4
@@ -98,7 +98,7 @@ importers:
         version: 0.13.0
       '@milaboratory/sdk-vue':
         specifier: 'catalog:'
-        version: 1.3.2(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))
+        version: 1.3.4(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))
     devDependencies:
       '@milaboratory/pl-block-tools':
         specifier: 'catalog:'
@@ -142,7 +142,7 @@ importers:
         version: 0.13.0
       '@milaboratory/sdk-vue':
         specifier: 'catalog:'
-        version: 1.3.2(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))
+        version: 1.3.4(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))
       '@types/lodash':
         specifier: 'catalog:'
         version: 4.17.7
@@ -817,6 +817,10 @@ packages:
     resolution: {integrity: sha512-aBZI4jLX1rIYDH9oywqGLNpw6JWnQvDogGUK9U9UJp07kU3uAyVREmDeaer5b+FprGXoe6XFesJuE9dzXVebTg==, tarball: https://npm.pkg.github.com/download/@milaboratory/platforma-uikit/1.2.0/7efa742d0929f4a154c7e6944625c2ffa6396a80}
     engines: {node: ^20.12.2, npm: ^10.5.2}
 
+  '@milaboratory/platforma-uikit@1.2.2':
+    resolution: {integrity: sha512-3fQI0vzdS1L8rgmusRN/ba1cAXbYCZfYUQBiotlsP1W27pJoquhKU513fwB3NEN+43IC+L/wrTtaFcg5Nn9bjA==, tarball: https://npm.pkg.github.com/download/@milaboratory/platforma-uikit/1.2.2/6fd72f77bc7a07ba616724ba105cfea2e1c990b0}
+    engines: {node: ^20.12.2, npm: ^10.5.2}
+
   '@milaboratory/sdk-model@1.3.9':
     resolution: {integrity: sha512-ZuJYcbNpbpNEjqBrpp7iY+QpwSIeQcfgP+28MiSctb0PrhHgascC2QvetetFczo6tKJlT2ZvmZ5spdgz0lvgYg==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-model/1.3.9/4e3091eb6014b20b67d7609a54c6014a3ad261ea}
 
@@ -829,8 +833,8 @@ packages:
   '@milaboratory/sdk-ui@0.13.0':
     resolution: {integrity: sha512-rQy0WmtTjr3UUqAXFazmo2CxAkqtq+JbCpj0axeO7KLKXQvEj7Xp57m2kt8iXGFVE9hirhBCYW8dwTYf3Lu89g==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-ui/0.13.0/7bb295ad199762c25726e52aa6129feb6bc6c2e1}
 
-  '@milaboratory/sdk-vue@1.3.2':
-    resolution: {integrity: sha512-dkJP39AZy9i7hkjovqmixhDZmEnCxoREnB430He0Ox6ZoFEs5FSGDlfNOX6JvEiZsLXeAGs+qblOos+2IhPoCA==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-vue/1.3.2/3ff32e90f7826452b2c7556853bf639ba23647ea}
+  '@milaboratory/sdk-vue@1.3.4':
+    resolution: {integrity: sha512-yfd1S8CkiY3n7DkO+hwcnlgwPa785meb3sJRudTj7CFL3mgVimtfQdl1+hlBodz3cdNYTKd4yCxbW2P7DlfDfQ==, tarball: https://npm.pkg.github.com/download/@milaboratory/sdk-vue/1.3.4/cb6f955a51acc4edaff77427b2ed01b7fceaece6}
     peerDependencies:
       '@milaboratory/helpers': ^1.5.3
       '@milaboratory/sdk-ui': ^0.13.0
@@ -3850,6 +3854,18 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
+  '@milaboratory/platforma-uikit@1.2.2(typescript@5.6.2)':
+    dependencies:
+      '@milaboratory/helpers': 1.5.3
+      '@milaboratory/platforma-core': 0.1.5
+      js-yaml: 4.1.0
+      vue: 3.5.6(typescript@5.6.2)
+      vue-router: 4.4.4(vue@3.5.6(typescript@5.6.2))
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.9.5
+    transitivePeerDependencies:
+      - typescript
+
   '@milaboratory/sdk-model@1.3.9':
     dependencies:
       zod: 3.23.8
@@ -3895,10 +3911,10 @@ snapshots:
       utility-types: 3.11.0
       zod: 3.23.8
 
-  '@milaboratory/sdk-vue@1.3.2(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))':
+  '@milaboratory/sdk-vue@1.3.4(@milaboratory/helpers@1.5.3)(@milaboratory/sdk-ui@0.13.0)(typescript@5.6.2)(vue@3.5.6(typescript@5.6.2))':
     dependencies:
       '@milaboratory/helpers': 1.5.3
-      '@milaboratory/platforma-uikit': 1.2.0(typescript@5.6.2)
+      '@milaboratory/platforma-uikit': 1.2.2(typescript@5.6.2)
       '@milaboratory/sdk-ui': 0.13.0
       vue: 3.5.6(typescript@5.6.2)
     optionalDependencies:

@@ -11,7 +11,7 @@ catalog:
   '@milaboratory/platforma-uikit': ^1.2.0
   '@milaboratory/sdk-test': ^1.5.5
   '@milaboratory/sdk-ui': ^0.13.0
-  '@milaboratory/sdk-vue': ^1.3.2
+  '@milaboratory/sdk-vue': ^1.3.4
   '@milaboratory/tengo-sdk': ^1.2.4
   '@milaboratory/tengo-template-builder': ^1.14.4
   '@types/lodash': ^4.17.7
