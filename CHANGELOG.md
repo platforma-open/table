@@ -1,5 +1,15 @@
 # @milaboratory/milaboratories.table
 
+## 0.2.3
+
+### Patch Changes
+
+- Preserve sheet selectors order
+- Updated dependencies
+  - @milaboratory/milaboratories.table.ui@0.2.3
+  - @milaboratory/milaboratories.table.model@0.2.3
+  - @milaboratory/milaboratories.table.workflow@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes

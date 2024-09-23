@@ -116,6 +116,13 @@ const additionalOptions = computed(() => {
 const additionalSelected = computed({
   get: () => uiState.model.additionalColumns,
   set: (idsAndSpecs) => {
+    const options = additionalOptions.value;
+    idsAndSpecs.sort((lhs, rhs) => {
+      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+      return li - ri;
+    });
+
     uiState.model.additionalColumns = idsAndSpecs;
     uiState.save();
   }
@@ -180,6 +187,13 @@ const enrichmentOptions = computedAsync(
 const enrichmentSelected = computed({
   get: () => uiState.model.enrichmentColumns,
   set: (idsAndSpecs) => {
+    const options = enrichmentOptions.value;
+    idsAndSpecs.sort((lhs, rhs) => {
+      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+      return li - ri;
+    });
+
     uiState.model.enrichmentColumns = idsAndSpecs;
     uiState.save();
   }
@@ -267,8 +281,9 @@ const partitioningOptions = computedAsync(
           columnId: idAndSpec.columnId,
           axis: axes[i].id,
           filters: [],
-          limit: Number.MAX_SAFE_INTEGER
+          limit: 100
         });
+        if (response.overflow) continue;
 
         const valueType = response.values.type;
         for (const value of response.values.data) {
@@ -301,7 +316,13 @@ const partitioningOptions = computedAsync(
 const partitioningSelected = computed({
   get: () => uiState.model.partitioningAxes,
   set: (partitioningAxes) => {
-    // TODO: before saving, sort in order the axes are displayed
+    const options = partitioningOptions.value;
+    partitioningAxes.sort((lhs, rhs) => {
+      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+      return li - ri;
+    });
+
     uiState.model.partitioningAxes = partitioningAxes;
     uiState.save();
   }
