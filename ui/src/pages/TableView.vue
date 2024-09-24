@@ -271,6 +271,7 @@ const partitioningOptions = computedAsync(
       .filter((spec) => spec.type === 'axis')
       .filter((spec) => spec.spec.type !== 'Bytes');
 
+    const limit = 100;
     const possibleValues: Set<string | number>[] = axes.map((_) => new Set());
     for (const idAndSpec of [column.selected, ...additional.selected]) {
       for (const columnAxis of idAndSpec.spec.axesSpec) {
@@ -281,14 +282,22 @@ const partitioningOptions = computedAsync(
           columnId: idAndSpec.columnId,
           axis: axes[i].id,
           filters: [],
-          limit: 100
+          limit
         });
-        if (response.overflow) continue;
+        if (response.overflow) {
+          axes.splice(i, 1);
+          continue;
+        }
 
         const valueType = response.values.type;
         for (const value of response.values.data) {
           if (isValueNA(value, valueType) || value === null) continue;
           possibleValues[i].add(toDisplayValue(value, valueType));
+
+          if (possibleValues[i].size === limit) {
+            axes.splice(i, 1);
+            break;
+          }
         }
       }
     }

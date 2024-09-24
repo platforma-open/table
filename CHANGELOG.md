@@ -1,5 +1,15 @@
 # @milaboratory/milaboratories.table
 
+## 0.2.4
+
+### Patch Changes
+
+- Fix limit behaviour
+- Updated dependencies
+  - @milaboratory/milaboratories.table.ui@0.2.4
+  - @milaboratory/milaboratories.table.model@0.2.4
+  - @milaboratory/milaboratories.table.workflow@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes
