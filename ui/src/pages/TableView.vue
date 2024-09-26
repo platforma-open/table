@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue';
+import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
@@ -22,7 +22,9 @@ import {
   PValueStringNA,
   type PValueBytes,
   PValueBytesNA,
-  type AxisId
+  getAxesId,
+  type PColumnIdAndSpec,
+  type PFrameHandle
 } from '@milaboratory/sdk-ui';
 import * as lodash from 'lodash';
 import {
@@ -36,6 +38,7 @@ const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
   additionalColumns: [],
   enrichmentColumns: [],
+  labelColumns: [],
   partitioningAxes: [],
   tableState: {
     gridState: {},
@@ -73,6 +76,7 @@ const columnOptions = computedAsync(
           'Unlabelled column ' + i.toString(),
         value: idAndSpec
       }))
+      .filter((option) => option.value.spec.name !== 'pl7.app/label')
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
@@ -84,6 +88,7 @@ const columnSelected = computed({
     uiState.model.mainColumn = idAndSpec;
     uiState.model.additionalColumns = [];
     uiState.model.enrichmentColumns = [];
+    uiState.model.labelColumns = [];
     uiState.model.partitioningAxes = [];
     uiState.model.tableState = {
       gridState: {},
@@ -149,25 +154,13 @@ const enrichmentOptions = computedAsync(
     if (!pFrame.value || !column.selected) return [];
     const response = await pfDriver.findColumns(pFrame.value, {
       columnFilter: {},
-      compatibleWith: column.selected.spec.axesSpec.map(
-        (axis) =>
-          ({
-            type: axis.type,
-            name: axis.name,
-            domain: Object.entries(axis.domain ?? []).reduce(
-              (acc, [key, value]) => {
-                acc[key] = value;
-                return acc;
-              },
-              {} as Record<string, string>
-            )
-          }) satisfies AxisId
-      ),
+      compatibleWith: getAxesId(column.selected.spec.axesSpec).map(lodash.cloneDeep),
       strictlyCompatible: true
     });
     return response.hits
       .filter(
         (idAndSpec) =>
+          idAndSpec.spec.name !== 'pl7.app/label' &&
           !lodash.isEqual(idAndSpec.columnId, column.selected?.columnId) &&
           lodash.findIndex(additional.options, (option) =>
             lodash.isEqual(option.value.columnId, idAndSpec.columnId)
@@ -206,6 +199,43 @@ const enrichment = reactive({
   selected: enrichmentSelected,
   disabled: enrichmentDisabled
 });
+
+const labelColumns = computed({
+  get: () => uiState.model.labelColumns,
+  set: (idsAndSpecs) => {
+    uiState.model.labelColumns = idsAndSpecs;
+    uiState.save();
+  }
+});
+async function getLabelColumns(
+  pFrame: PFrameHandle,
+  idsAndSpecs: PColumnIdAndSpec[]
+): Promise<PColumnIdAndSpec[]> {
+  if (!idsAndSpecs.length) return [];
+
+  const response = await pfDriver.findColumns(pFrame, {
+    columnFilter: {
+      name: ['pl7.app/label']
+    },
+    compatibleWith: lodash.uniqWith(
+      idsAndSpecs.map((column) => getAxesId(column.spec.axesSpec).map(lodash.cloneDeep)).flat(),
+      lodash.isEqual
+    ),
+    strictlyCompatible: true
+  });
+  return response.hits;
+}
+watch(
+  () => [pFrame.value, columnSelected.value, enrichmentSelected.value] as const,
+  async (state, prevState) => {
+    if (lodash.isEqual(state, prevState)) return;
+
+    const [pFrame, columnSelected, enrichmentSelected] = state;
+    if (!pFrame || !columnSelected) return;
+
+    labelColumns.value = await getLabelColumns(pFrame, [columnSelected, ...enrichmentSelected]);
+  }
+);
 
 function isValueNA(value: unknown, valueType: ValueType): boolean {
   switch (valueType) {
