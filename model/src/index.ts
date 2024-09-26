@@ -13,10 +13,12 @@ export type BlockArgs = {};
 
 export type UiState = {
   settingsOpened: boolean;
-  mainColumn?: PColumnIdAndSpec;
-  additionalColumns: PColumnIdAndSpec[];
-  enrichmentColumns: PColumnIdAndSpec[];
-  labelColumns: PColumnIdAndSpec[];
+  group: {
+    mainColumn?: PColumnIdAndSpec;
+    additionalColumns: PColumnIdAndSpec[];
+    enrichmentColumns: PColumnIdAndSpec[];
+    labelColumns: PColumnIdAndSpec[];
+  };
   partitioningAxes: PlDataTableSheet[];
   tableState: PlDataTableState;
 };
@@ -52,14 +54,14 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
     return ctx.createPFrame(pColumns);
   })
   .output('pTable', (ctx) => {
-    if (!ctx.uiState?.mainColumn) return undefined;
+    if (!ctx.uiState?.group.mainColumn) return undefined;
     const primaryIds = [
-      ctx.uiState!.mainColumn.columnId,
-      ...ctx.uiState!.additionalColumns.map((idAndSpec) => idAndSpec.columnId)
+      ctx.uiState!.group.mainColumn.columnId,
+      ...ctx.uiState!.group.additionalColumns.map((idAndSpec) => idAndSpec.columnId)
     ];
     const secondaryIds = [
-      ...ctx.uiState!.enrichmentColumns.map((idAndSpec) => idAndSpec.columnId),
-      ...ctx.uiState!.labelColumns.map((idAndSpec) => idAndSpec.columnId)
+      ...ctx.uiState!.group.enrichmentColumns.map((idAndSpec) => idAndSpec.columnId),
+      ...ctx.uiState!.group.labelColumns.map((idAndSpec) => idAndSpec.columnId)
     ];
 
     const collection = ctx.resultPool.getDataFromResultPool();

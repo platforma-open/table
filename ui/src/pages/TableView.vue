@@ -36,9 +36,12 @@ import {
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
-  additionalColumns: [],
-  enrichmentColumns: [],
-  labelColumns: [],
+  group: {
+    mainColumn: undefined,
+    additionalColumns: [],
+    enrichmentColumns: [],
+    labelColumns: []
+  },
   partitioningAxes: [],
   tableState: {
     gridState: {},
@@ -57,7 +60,6 @@ const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
   set: (opened) => {
     uiState.model.settingsOpened = opened;
-    uiState.save();
   }
 });
 
@@ -82,24 +84,7 @@ const columnOptions = computedAsync(
   [],
   columnOptionsEvaluating
 );
-const columnSelected = computed({
-  get: () => uiState.model.mainColumn,
-  set: (idAndSpec) => {
-    uiState.model.mainColumn = idAndSpec;
-    uiState.model.additionalColumns = [];
-    uiState.model.enrichmentColumns = [];
-    uiState.model.labelColumns = [];
-    uiState.model.partitioningAxes = [];
-    uiState.model.tableState = {
-      gridState: {},
-      pTableParams: {
-        sorting: [],
-        filters: []
-      }
-    };
-    uiState.save();
-  }
-});
+const columnSelected = ref<PColumnIdAndSpec>();
 const column = reactive({
   label: 'Main column',
   placeholder: columnPlaceholder,
@@ -118,20 +103,7 @@ const additionalOptions = computed(() => {
       lodash.isEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec)
   );
 });
-const additionalSelected = computed({
-  get: () => uiState.model.additionalColumns,
-  set: (idsAndSpecs) => {
-    const options = additionalOptions.value;
-    idsAndSpecs.sort((lhs, rhs) => {
-      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
-      return li - ri;
-    });
-
-    uiState.model.additionalColumns = idsAndSpecs;
-    uiState.save();
-  }
-});
+const additionalSelected = ref<PColumnIdAndSpec[]>([]);
 const additionalDisabled = computed(() => !column.selected);
 const additional = reactive({
   label: 'Additional columns',
@@ -177,20 +149,7 @@ const enrichmentOptions = computedAsync(
   [],
   enrichmentEvaluating
 );
-const enrichmentSelected = computed({
-  get: () => uiState.model.enrichmentColumns,
-  set: (idsAndSpecs) => {
-    const options = enrichmentOptions.value;
-    idsAndSpecs.sort((lhs, rhs) => {
-      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
-      return li - ri;
-    });
-
-    uiState.model.enrichmentColumns = idsAndSpecs;
-    uiState.save();
-  }
-});
+const enrichmentSelected = ref<PColumnIdAndSpec[]>([]);
 const enrichmentDisabled = computed(() => !column.selected && !enrichmentEvaluating.value);
 const enrichment = reactive({
   label: 'Enrichment columns',
@@ -200,13 +159,6 @@ const enrichment = reactive({
   disabled: enrichmentDisabled
 });
 
-const labelColumns = computed({
-  get: () => uiState.model.labelColumns,
-  set: (idsAndSpecs) => {
-    uiState.model.labelColumns = idsAndSpecs;
-    uiState.save();
-  }
-});
 async function getLabelColumns(
   pFrame: PFrameHandle,
   idsAndSpecs: PColumnIdAndSpec[]
@@ -225,15 +177,93 @@ async function getLabelColumns(
   });
   return response.hits;
 }
+
 watch(
-  () => [pFrame.value, columnSelected.value, enrichmentSelected.value] as const,
+  () => uiState.model.group,
+  (group) => {
+    columnSelected.value = group.mainColumn;
+    additionalSelected.value = group.additionalColumns;
+    enrichmentSelected.value = group.enrichmentColumns;
+  },
+  { immediate: true }
+);
+
+watch(
+  () =>
+    [
+      pFrame.value,
+      columnSelected.value,
+      additionalOptions.value,
+      additionalSelected.value,
+      enrichmentEvaluating.value,
+      enrichmentOptions.value,
+      enrichmentSelected.value
+    ] as const,
   async (state, prevState) => {
     if (lodash.isEqual(state, prevState)) return;
 
-    const [pFrame, columnSelected, enrichmentSelected] = state;
-    if (!pFrame || !columnSelected) return;
+    const [
+      pFrame,
+      column,
+      additionalOptions,
+      additional,
+      enrichmentEvaluating,
+      enrichmentOptions,
+      enrichment
+    ] = state;
+    const [_, prevColumn] = prevState;
 
-    labelColumns.value = await getLabelColumns(pFrame, [columnSelected, ...enrichmentSelected]);
+    if (!lodash.isEqual(column, prevColumn)) {
+      let labelColumns: PColumnIdAndSpec[] = [];
+      if (column) {
+        if (!pFrame) return;
+        labelColumns = await getLabelColumns(pFrame, [column]);
+      }
+      uiState.model.group = {
+        mainColumn: column,
+        additionalColumns: [],
+        enrichmentColumns: [],
+        labelColumns: labelColumns
+      };
+      uiState.model.partitioningAxes = [];
+      uiState.model.tableState = {
+        gridState: {},
+        pTableParams: {
+          sorting: [],
+          filters: []
+        }
+      };
+      return;
+    }
+
+    if (!pFrame || !column || enrichmentEvaluating) return;
+
+    (() => {
+      const options = additionalOptions;
+      additional.sort((lhs, rhs) => {
+        const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+        const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+        return li - ri;
+      });
+    })();
+
+    (() => {
+      const options = enrichmentOptions;
+      enrichment.sort((lhs, rhs) => {
+        const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+        const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+        return li - ri;
+      });
+    })();
+
+    const labelColumns = await getLabelColumns(pFrame, [column, ...enrichment]);
+
+    uiState.model.group = {
+      mainColumn: column,
+      additionalColumns: additional,
+      enrichmentColumns: enrichment,
+      labelColumns: labelColumns
+    };
   }
 );
 
@@ -363,7 +393,6 @@ const partitioningSelected = computed({
     });
 
     uiState.model.partitioningAxes = partitioningAxes;
-    uiState.save();
   }
 });
 const partitioningDisabled = computed(() => !column.selected && !partitioningEvaluating.value);
@@ -380,7 +409,6 @@ const tableState = computed({
   set: (tableState) => {
     if (!lodash.isEqual(tableState, uiState.model.tableState)) {
       uiState.model.tableState = tableState;
-      uiState.save();
     }
   }
 });
