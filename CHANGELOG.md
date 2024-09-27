@@ -1,5 +1,18 @@
 # @milaboratory/milaboratories.table
 
+## 0.3.0
+
+### Minor Changes
+
+- migrated to public modules
+
+### Patch Changes
+
+- Updated dependencies
+  - @milaboratory/milaboratories.table.workflow@0.3.0
+  - @milaboratory/milaboratories.table.model@0.3.0
+  - @milaboratory/milaboratories.table.ui@0.3.0
+
 ## 0.2.4
 
 ### Patch Changes
