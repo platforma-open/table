@@ -3,12 +3,7 @@ import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
-import {
-  PlAlert,
-  PlBtnSecondary,
-  PlDropdown,
-  PlDropdownMulti
-} from '@milaboratory/platforma-uikit';
+import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
   type ValueType,
   type PValueInt,
@@ -25,13 +20,13 @@ import {
   getAxesId,
   type PColumnIdAndSpec,
   type PFrameHandle
-} from '@milaboratory/sdk-ui';
+} from '@platforma-sdk/model';
 import * as lodash from 'lodash';
 import {
   PlAgDataTable,
   type PlDataTableSheet,
   type PlDataTableSettings
-} from '@milaboratory/sdk-vue';
+} from '@platforma-sdk/ui-vue';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
@@ -425,7 +420,13 @@ const tableSettings = computed(
 <template>
   <div class="box">
     <Transition name="alert-transition">
-      <PlAlert v-if="!pFrame" type="warn" :icon="true" label="Columns not loaded">
+      <PlAlert
+        v-if="!pFrame"
+        :modelValue="true"
+        type="warn"
+        :icon="true"
+        label="Columns not loaded"
+      >
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>

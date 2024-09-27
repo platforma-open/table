@@ -1,5 +1,5 @@
 import { blockSpec } from 'this-block';
-import { blockTest } from '@milaboratory/sdk-test';
+import { blockTest } from '@platforma-sdk/test';
 
 blockTest('Run template', async ({ rawPrj: project, ml, helpers }) => {
   const blockId = await project.addBlock('Block', blockSpec);

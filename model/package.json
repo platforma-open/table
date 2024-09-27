@@ -13,11 +13,11 @@
     "build": "tsup && vite build && block-tools build-model"
   },
   "dependencies": {
-    "@milaboratory/sdk-ui": "catalog:",
-    "@milaboratory/sdk-vue": "catalog:"
+    "@platforma-sdk/model": "catalog:",
+    "@platforma-sdk/ui-vue": "catalog:"
   },
   "devDependencies": {
-    "@milaboratory/pl-block-tools": "catalog:",
+    "@platforma-sdk/block-tools": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"

@@ -6,8 +6,8 @@ import {
   type PColumnIdAndSpec,
   type PlDataTableState,
   type ValueType
-} from '@milaboratory/sdk-ui';
-import { type PlDataTableSheet } from '@milaboratory/sdk-vue';
+} from '@platforma-sdk/model';
+import { type PlDataTableSheet } from '@platforma-sdk/ui-vue';
 
 export type BlockArgs = {};
 

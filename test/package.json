@@ -13,7 +13,7 @@
     "this-block": "workspace:@milaboratory/milaboratories.table@*"
   },
   "devDependencies": {
-    "@milaboratory/sdk-test": "catalog:",
+    "@platforma-sdk/test": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
