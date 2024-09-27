@@ -1,6 +1,6 @@
 {
   "name": "@milaboratory/milaboratories.table.model",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Block model",
   "type": "module",
   "main": "dist/index.cjs",
@@ -13,11 +13,11 @@
     "build": "tsup && vite build && block-tools build-model"
   },
   "dependencies": {
-    "@milaboratory/sdk-ui": "catalog:",
-    "@milaboratory/sdk-vue": "catalog:"
+    "@platforma-sdk/model": "catalog:",
+    "@platforma-sdk/ui-vue": "catalog:"
   },
   "devDependencies": {
-    "@milaboratory/pl-block-tools": "catalog:",
+    "@platforma-sdk/block-tools": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"

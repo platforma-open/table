@@ -1,6 +1,6 @@
 {
   "name": "@milaboratory/milaboratories.table.workflow",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
@@ -15,7 +15,7 @@
     "format": "/usr/bin/env emacs --script ./format.el"
   },
   "devDependencies": {
-    "@milaboratory/tengo-sdk": "catalog:",
-    "@milaboratory/tengo-template-builder": "catalog:"
+    "@platforma-sdk/tengo-builder": "catalog:",
+    "@platforma-sdk/workflow-tengo": "catalog:"
   }
 }

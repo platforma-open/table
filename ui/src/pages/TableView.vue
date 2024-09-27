@@ -1,14 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue';
+import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model } from '@milaboratory/milaboratories.table.model';
-import {
-  PlAlert,
-  PlBtnSecondary,
-  PlDropdown,
-  PlDropdownMulti
-} from '@milaboratory/platforma-uikit';
+import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
   type ValueType,
   type PValueInt,
@@ -22,20 +17,26 @@ import {
   PValueStringNA,
   type PValueBytes,
   PValueBytesNA,
-  type AxisId
-} from '@milaboratory/sdk-ui';
+  getAxesId,
+  type PColumnIdAndSpec,
+  type PFrameHandle
+} from '@platforma-sdk/model';
 import * as lodash from 'lodash';
 import {
   PlAgDataTable,
   type PlDataTableSheet,
   type PlDataTableSettings
-} from '@milaboratory/sdk-vue';
+} from '@platforma-sdk/ui-vue';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
   settingsOpened: true,
-  additionalColumns: [],
-  enrichmentColumns: [],
+  group: {
+    mainColumn: undefined,
+    additionalColumns: [],
+    enrichmentColumns: [],
+    labelColumns: []
+  },
   partitioningAxes: [],
   tableState: {
     gridState: {},
@@ -54,7 +55,6 @@ const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
   set: (opened) => {
     uiState.model.settingsOpened = opened;
-    uiState.save();
   }
 });
 
@@ -73,28 +73,13 @@ const columnOptions = computedAsync(
           'Unlabelled column ' + i.toString(),
         value: idAndSpec
       }))
+      .filter((option) => option.value.spec.name !== 'pl7.app/label')
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
   columnOptionsEvaluating
 );
-const columnSelected = computed({
-  get: () => uiState.model.mainColumn,
-  set: (idAndSpec) => {
-    uiState.model.mainColumn = idAndSpec;
-    uiState.model.additionalColumns = [];
-    uiState.model.enrichmentColumns = [];
-    uiState.model.partitioningAxes = [];
-    uiState.model.tableState = {
-      gridState: {},
-      pTableParams: {
-        sorting: [],
-        filters: []
-      }
-    };
-    uiState.save();
-  }
-});
+const columnSelected = ref<PColumnIdAndSpec>();
 const column = reactive({
   label: 'Main column',
   placeholder: columnPlaceholder,
@@ -113,20 +98,7 @@ const additionalOptions = computed(() => {
       lodash.isEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec)
   );
 });
-const additionalSelected = computed({
-  get: () => uiState.model.additionalColumns,
-  set: (idsAndSpecs) => {
-    const options = additionalOptions.value;
-    idsAndSpecs.sort((lhs, rhs) => {
-      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
-      return li - ri;
-    });
-
-    uiState.model.additionalColumns = idsAndSpecs;
-    uiState.save();
-  }
-});
+const additionalSelected = ref<PColumnIdAndSpec[]>([]);
 const additionalDisabled = computed(() => !column.selected);
 const additional = reactive({
   label: 'Additional columns',
@@ -149,25 +121,13 @@ const enrichmentOptions = computedAsync(
     if (!pFrame.value || !column.selected) return [];
     const response = await pfDriver.findColumns(pFrame.value, {
       columnFilter: {},
-      compatibleWith: column.selected.spec.axesSpec.map(
-        (axis) =>
-          ({
-            type: axis.type,
-            name: axis.name,
-            domain: Object.entries(axis.domain ?? []).reduce(
-              (acc, [key, value]) => {
-                acc[key] = value;
-                return acc;
-              },
-              {} as Record<string, string>
-            )
-          }) satisfies AxisId
-      ),
+      compatibleWith: getAxesId(column.selected.spec.axesSpec).map(lodash.cloneDeep),
       strictlyCompatible: true
     });
     return response.hits
       .filter(
         (idAndSpec) =>
+          idAndSpec.spec.name !== 'pl7.app/label' &&
           !lodash.isEqual(idAndSpec.columnId, column.selected?.columnId) &&
           lodash.findIndex(additional.options, (option) =>
             lodash.isEqual(option.value.columnId, idAndSpec.columnId)
@@ -184,20 +144,7 @@ const enrichmentOptions = computedAsync(
   [],
   enrichmentEvaluating
 );
-const enrichmentSelected = computed({
-  get: () => uiState.model.enrichmentColumns,
-  set: (idsAndSpecs) => {
-    const options = enrichmentOptions.value;
-    idsAndSpecs.sort((lhs, rhs) => {
-      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
-      return li - ri;
-    });
-
-    uiState.model.enrichmentColumns = idsAndSpecs;
-    uiState.save();
-  }
-});
+const enrichmentSelected = ref<PColumnIdAndSpec[]>([]);
 const enrichmentDisabled = computed(() => !column.selected && !enrichmentEvaluating.value);
 const enrichment = reactive({
   label: 'Enrichment columns',
@@ -206,6 +153,114 @@ const enrichment = reactive({
   selected: enrichmentSelected,
   disabled: enrichmentDisabled
 });
+
+async function getLabelColumns(
+  pFrame: PFrameHandle,
+  idsAndSpecs: PColumnIdAndSpec[]
+): Promise<PColumnIdAndSpec[]> {
+  if (!idsAndSpecs.length) return [];
+
+  const response = await pfDriver.findColumns(pFrame, {
+    columnFilter: {
+      name: ['pl7.app/label']
+    },
+    compatibleWith: lodash.uniqWith(
+      idsAndSpecs.map((column) => getAxesId(column.spec.axesSpec).map(lodash.cloneDeep)).flat(),
+      lodash.isEqual
+    ),
+    strictlyCompatible: true
+  });
+  return response.hits;
+}
+
+watch(
+  () => uiState.model.group,
+  (group) => {
+    columnSelected.value = group.mainColumn;
+    additionalSelected.value = group.additionalColumns;
+    enrichmentSelected.value = group.enrichmentColumns;
+  },
+  { immediate: true }
+);
+
+watch(
+  () =>
+    [
+      pFrame.value,
+      columnSelected.value,
+      additionalOptions.value,
+      additionalSelected.value,
+      enrichmentEvaluating.value,
+      enrichmentOptions.value,
+      enrichmentSelected.value
+    ] as const,
+  async (state, prevState) => {
+    if (lodash.isEqual(state, prevState)) return;
+
+    const [
+      pFrame,
+      column,
+      additionalOptions,
+      additional,
+      enrichmentEvaluating,
+      enrichmentOptions,
+      enrichment
+    ] = state;
+    const [_, prevColumn] = prevState;
+
+    if (!lodash.isEqual(column, prevColumn)) {
+      let labelColumns: PColumnIdAndSpec[] = [];
+      if (column) {
+        if (!pFrame) return;
+        labelColumns = await getLabelColumns(pFrame, [column]);
+      }
+      uiState.model.group = {
+        mainColumn: column,
+        additionalColumns: [],
+        enrichmentColumns: [],
+        labelColumns: labelColumns
+      };
+      uiState.model.partitioningAxes = [];
+      uiState.model.tableState = {
+        gridState: {},
+        pTableParams: {
+          sorting: [],
+          filters: []
+        }
+      };
+      return;
+    }
+
+    if (!pFrame || !column || enrichmentEvaluating) return;
+
+    (() => {
+      const options = additionalOptions;
+      additional.sort((lhs, rhs) => {
+        const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+        const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+        return li - ri;
+      });
+    })();
+
+    (() => {
+      const options = enrichmentOptions;
+      enrichment.sort((lhs, rhs) => {
+        const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
+        const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+        return li - ri;
+      });
+    })();
+
+    const labelColumns = await getLabelColumns(pFrame, [column, ...enrichment]);
+
+    uiState.model.group = {
+      mainColumn: column,
+      additionalColumns: additional,
+      enrichmentColumns: enrichment,
+      labelColumns: labelColumns
+    };
+  }
+);
 
 function isValueNA(value: unknown, valueType: ValueType): boolean {
   switch (valueType) {
@@ -333,7 +388,6 @@ const partitioningSelected = computed({
     });
 
     uiState.model.partitioningAxes = partitioningAxes;
-    uiState.save();
   }
 });
 const partitioningDisabled = computed(() => !column.selected && !partitioningEvaluating.value);
@@ -350,7 +404,6 @@ const tableState = computed({
   set: (tableState) => {
     if (!lodash.isEqual(tableState, uiState.model.tableState)) {
       uiState.model.tableState = tableState;
-      uiState.save();
     }
   }
 });
@@ -367,7 +420,13 @@ const tableSettings = computed(
 <template>
   <div class="box">
     <Transition name="alert-transition">
-      <PlAlert v-if="!pFrame" type="warn" :icon="true" label="Columns not loaded">
+      <PlAlert
+        v-if="!pFrame"
+        :modelValue="true"
+        type="warn"
+        :icon="true"
+        label="Columns not loaded"
+      >
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>

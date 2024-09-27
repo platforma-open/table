@@ -6,16 +6,19 @@ import {
   type PColumnIdAndSpec,
   type PlDataTableState,
   type ValueType
-} from '@milaboratory/sdk-ui';
-import { type PlDataTableSheet } from '@milaboratory/sdk-vue';
+} from '@platforma-sdk/model';
+import { type PlDataTableSheet } from '@platforma-sdk/ui-vue';
 
 export type BlockArgs = {};
 
 export type UiState = {
   settingsOpened: boolean;
-  mainColumn?: PColumnIdAndSpec;
-  additionalColumns: PColumnIdAndSpec[];
-  enrichmentColumns: PColumnIdAndSpec[];
+  group: {
+    mainColumn?: PColumnIdAndSpec;
+    additionalColumns: PColumnIdAndSpec[];
+    enrichmentColumns: PColumnIdAndSpec[];
+    labelColumns: PColumnIdAndSpec[];
+  };
   partitioningAxes: PlDataTableSheet[];
   tableState: PlDataTableState;
 };
@@ -23,6 +26,22 @@ export type UiState = {
 export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
   .initialArgs({})
   .sections([{ type: 'link', href: '/', label: 'View' }])
+  .output('pColumns', (ctx) => {
+    const collection = ctx.resultPool.getDataFromResultPool();
+    if (collection === undefined || !collection.isComplete) return undefined;
+
+    const valueTypes = ['Int', 'Long', 'Float', 'Double', 'String', 'Bytes'] as ValueType[];
+    const pColumns = collection.entries
+      .map(({ obj }) => obj)
+      .filter(isPColumn)
+      .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType));
+    return pColumns.map((column) => ({
+      id: column.id,
+      spec: column.spec,
+      resourceType: column.data.resourceType,
+      data: column.data.getDataAsJson()
+    }));
+  })
   .output('pFrame', (ctx) => {
     const collection = ctx.resultPool.getDataFromResultPool();
     if (collection === undefined || !collection.isComplete) return undefined;
@@ -35,12 +54,15 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
     return ctx.createPFrame(pColumns);
   })
   .output('pTable', (ctx) => {
-    if (!ctx.uiState?.mainColumn) return undefined;
+    if (!ctx.uiState?.group.mainColumn) return undefined;
     const primaryIds = [
-      ctx.uiState!.mainColumn.columnId,
-      ...ctx.uiState!.additionalColumns.map((idAndSpec) => idAndSpec.columnId)
+      ctx.uiState!.group.mainColumn.columnId,
+      ...ctx.uiState!.group.additionalColumns.map((idAndSpec) => idAndSpec.columnId)
     ];
-    const secondaryIds = ctx.uiState!.enrichmentColumns.map((idAndSpec) => idAndSpec.columnId);
+    const secondaryIds = [
+      ...ctx.uiState!.group.enrichmentColumns.map((idAndSpec) => idAndSpec.columnId),
+      ...ctx.uiState!.group.labelColumns.map((idAndSpec) => idAndSpec.columnId)
+    ];
 
     const collection = ctx.resultPool.getDataFromResultPool();
     if (!collection || !collection.isComplete) return undefined;

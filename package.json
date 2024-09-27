@@ -1,6 +1,6 @@
 {
   "name": "@milaboratory/milaboratories.table",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "scripts": {
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json,vue}\"",
     "build": "rm -rf ./block-pack && block-tools pack"
@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
-    "@milaboratory/pl-block-tools": "catalog:",
+    "@platforma-sdk/block-tools": "catalog:",
     "prettier": "catalog:"
   },
   "pnpm": {

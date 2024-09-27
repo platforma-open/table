@@ -1,6 +1,6 @@
 {
   "name": "@milaboratory/milaboratories.table.ui",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "type": "module",
   "files": [
     "dist/**/*"
@@ -13,9 +13,9 @@
   },
   "devDependencies": {
     "@milaboratory/milaboratories.table.model": "workspace:*",
-    "@milaboratory/platforma-uikit": "catalog:",
-    "@milaboratory/sdk-ui": "catalog:",
-    "@milaboratory/sdk-vue": "catalog:",
+    "@milaboratories/uikit": "catalog:",
+    "@platforma-sdk/model": "catalog:",
+    "@platforma-sdk/ui-vue": "catalog:",
     "@types/lodash": "catalog:",
     "@types/node": "catalog:",
     "@vitejs/plugin-vue": "catalog:",

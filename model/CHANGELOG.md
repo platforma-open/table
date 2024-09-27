@@ -1,5 +1,11 @@
 # @milaboratory/milaboratories.table.model
 
+## 0.3.0
+
+### Minor Changes
+
+- migrated to public modules
+
 ## 0.2.4
 
 ### Patch Changes
