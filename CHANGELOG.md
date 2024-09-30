@@ -1,5 +1,18 @@
 # @platforma-open/milaboratories.table
 
+## 0.4.0
+
+### Minor Changes
+
+- dafb002: migratio to platforma-open
+
+### Patch Changes
+
+- Updated dependencies [dafb002]
+  - @platforma-open/milaboratories.table.workflow@0.4.0
+  - @platforma-open/milaboratories.table.model@0.4.0
+  - @platforma-open/milaboratories.table.ui@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
