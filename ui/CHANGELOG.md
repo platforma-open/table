@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 0.4.0
+
+### Minor Changes
+
+- dafb002: migratio to platforma-open
+
 ## 0.3.0
 
 ### Minor Changes

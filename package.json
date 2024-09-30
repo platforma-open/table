@@ -1,6 +1,6 @@
 {
   "name": "@platforma-open/milaboratories.table",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "scripts": {
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json,vue}\"",
     "build": "rm -rf ./block-pack && block-tools pack",
