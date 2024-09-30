@@ -1,4 +1,4 @@
-import { model } from '@milaboratory/milaboratories.table.model';
+import { model } from '@platforma-open/milaboratories.table.model';
 import { defineApp } from '@platforma-sdk/ui-vue';
 import TableView from './pages/TableView.vue';
 

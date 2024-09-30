@@ -1,4 +1,4 @@
-# @milaboratory/milaboratories.table.ui
+# @platforma-open/milaboratories.table.ui
 
 ## 0.3.0
 
@@ -42,7 +42,7 @@
 
 - Css fix
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.5
+  - @platforma-open/milaboratories.table.model@0.1.5
 
 ## 0.1.4
 
@@ -50,7 +50,7 @@
 
 - Fix placeholder
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.4
+  - @platforma-open/milaboratories.table.model@0.1.4
 
 ## 0.1.3
 
@@ -58,7 +58,7 @@
 
 - Additional columns selector
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.3
+  - @platforma-open/milaboratories.table.model@0.1.3
 
 ## 0.1.2
 
@@ -66,7 +66,7 @@
 
 - Alert when columns not loaded
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.2
+  - @platforma-open/milaboratories.table.model@0.1.2
 
 ## 0.1.1
 
@@ -74,4 +74,4 @@
 
 - View is reloaded when new grid state is set over the network.
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.1
+  - @platforma-open/milaboratories.table.model@0.1.1

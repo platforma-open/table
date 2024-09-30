@@ -1,4 +1,4 @@
-# @milaboratory/milaboratories.table.workflow
+# @platforma-open/milaboratories.table.workflow
 
 ## 0.3.0
 

@@ -2,7 +2,7 @@
 import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
-import { model } from '@milaboratory/milaboratories.table.model';
+import { model } from '@platforma-open/milaboratories.table.model';
 import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
   type ValueType,

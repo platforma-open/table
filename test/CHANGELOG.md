@@ -1,4 +1,4 @@
-# @milaboratory/milaboratories.table.test
+# @platforma-open/milaboratories.table.test
 
 ## 0.3.0
 

@@ -1,5 +1,5 @@
 {
-  "name": "@milaboratory/milaboratories.table.test",
+  "name": "@platforma-open/milaboratories.table.test",
   "private": true,
   "version": "0.3.0",
   "description": "Block tests",
@@ -10,7 +10,7 @@
   "files": [],
   "keywords": [],
   "dependencies": {
-    "this-block": "workspace:@milaboratory/milaboratories.table@*"
+    "this-block": "workspace:@platforma-open/milaboratories.table@*"
   },
   "devDependencies": {
     "@platforma-sdk/test": "catalog:",

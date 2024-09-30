@@ -1,4 +1,4 @@
-# @milaboratory/milaboratories.table
+# @platforma-open/milaboratories.table
 
 ## 0.3.0
 
@@ -9,9 +9,9 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @milaboratory/milaboratories.table.workflow@0.3.0
-  - @milaboratory/milaboratories.table.model@0.3.0
-  - @milaboratory/milaboratories.table.ui@0.3.0
+  - @platforma-open/milaboratories.table.workflow@0.3.0
+  - @platforma-open/milaboratories.table.model@0.3.0
+  - @platforma-open/milaboratories.table.ui@0.3.0
 
 ## 0.2.4
 
@@ -19,9 +19,9 @@
 
 - Fix limit behaviour
 - Updated dependencies
-  - @milaboratory/milaboratories.table.ui@0.2.4
-  - @milaboratory/milaboratories.table.model@0.2.4
-  - @milaboratory/milaboratories.table.workflow@0.2.4
+  - @platforma-open/milaboratories.table.ui@0.2.4
+  - @platforma-open/milaboratories.table.model@0.2.4
+  - @platforma-open/milaboratories.table.workflow@0.2.4
 
 ## 0.2.3
 
@@ -29,9 +29,9 @@
 
 - Preserve sheet selectors order
 - Updated dependencies
-  - @milaboratory/milaboratories.table.ui@0.2.3
-  - @milaboratory/milaboratories.table.model@0.2.3
-  - @milaboratory/milaboratories.table.workflow@0.2.3
+  - @platforma-open/milaboratories.table.ui@0.2.3
+  - @platforma-open/milaboratories.table.model@0.2.3
+  - @platforma-open/milaboratories.table.workflow@0.2.3
 
 ## 0.2.2
 
@@ -39,9 +39,9 @@
 
 - Initial partitioning support
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.2.2
-  - @milaboratory/milaboratories.table.ui@0.2.2
-  - @milaboratory/milaboratories.table.workflow@0.2.2
+  - @platforma-open/milaboratories.table.model@0.2.2
+  - @platforma-open/milaboratories.table.ui@0.2.2
+  - @platforma-open/milaboratories.table.workflow@0.2.2
 
 ## 0.2.1
 
@@ -49,9 +49,9 @@
 
 - Wait for results before building ptable
 - Updated dependencies
-  - @milaboratory/milaboratories.table.workflow@0.2.1
-  - @milaboratory/milaboratories.table.model@0.2.1
-  - @milaboratory/milaboratories.table.ui@0.2.1
+  - @platforma-open/milaboratories.table.workflow@0.2.1
+  - @platforma-open/milaboratories.table.model@0.2.1
+  - @platforma-open/milaboratories.table.ui@0.2.1
 
 ## 0.2.0
 
@@ -62,9 +62,9 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.2.0
-  - @milaboratory/milaboratories.table.ui@0.2.0
-  - @milaboratory/milaboratories.table.workflow@0.2.0
+  - @platforma-open/milaboratories.table.model@0.2.0
+  - @platforma-open/milaboratories.table.ui@0.2.0
+  - @platforma-open/milaboratories.table.workflow@0.2.0
 
 ## 0.1.5
 
@@ -72,9 +72,9 @@
 
 - Css fix
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.5
-  - @milaboratory/milaboratories.table.ui@0.1.5
-  - @milaboratory/milaboratories.table.workflow@0.1.5
+  - @platforma-open/milaboratories.table.model@0.1.5
+  - @platforma-open/milaboratories.table.ui@0.1.5
+  - @platforma-open/milaboratories.table.workflow@0.1.5
 
 ## 0.1.4
 
@@ -82,9 +82,9 @@
 
 - Fix placeholder
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.4
-  - @milaboratory/milaboratories.table.ui@0.1.4
-  - @milaboratory/milaboratories.table.workflow@0.1.4
+  - @platforma-open/milaboratories.table.model@0.1.4
+  - @platforma-open/milaboratories.table.ui@0.1.4
+  - @platforma-open/milaboratories.table.workflow@0.1.4
 
 ## 0.1.3
 
@@ -92,9 +92,9 @@
 
 - Additional columns selector
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.3
-  - @milaboratory/milaboratories.table.ui@0.1.3
-  - @milaboratory/milaboratories.table.workflow@0.1.3
+  - @platforma-open/milaboratories.table.model@0.1.3
+  - @platforma-open/milaboratories.table.ui@0.1.3
+  - @platforma-open/milaboratories.table.workflow@0.1.3
 
 ## 0.1.2
 
@@ -102,9 +102,9 @@
 
 - Alert when columns not loaded
 - Updated dependencies
-  - @milaboratory/milaboratories.table.workflow@0.1.2
-  - @milaboratory/milaboratories.table.model@0.1.2
-  - @milaboratory/milaboratories.table.ui@0.1.2
+  - @platforma-open/milaboratories.table.workflow@0.1.2
+  - @platforma-open/milaboratories.table.model@0.1.2
+  - @platforma-open/milaboratories.table.ui@0.1.2
 
 ## 0.1.1
 
@@ -112,6 +112,6 @@
 
 - View is reloaded when new grid state is set over the network.
 - Updated dependencies
-  - @milaboratory/milaboratories.table.model@0.1.1
-  - @milaboratory/milaboratories.table.ui@0.1.1
-  - @milaboratory/milaboratories.table.workflow@0.1.1
+  - @platforma-open/milaboratories.table.model@0.1.1
+  - @platforma-open/milaboratories.table.ui@0.1.1
+  - @platforma-open/milaboratories.table.workflow@0.1.1

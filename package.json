@@ -1,18 +1,19 @@
 {
-  "name": "@milaboratory/milaboratories.table",
+  "name": "@platforma-open/milaboratories.table",
   "version": "0.3.0",
   "scripts": {
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json,vue}\"",
-    "build": "rm -rf ./block-pack && block-tools pack"
+    "build": "rm -rf ./block-pack && block-tools pack",
+    "prepublishOnly": "block-tools pack && block-tools publish -r 's3://milab-euce1-prod-pkgs-s3-block-registry/pub/releases/?region=eu-central-1'"
   },
   "files": [
     "index.d.ts",
     "index.js"
   ],
   "dependencies": {
-    "@milaboratory/milaboratories.table.model": "workspace:*",
-    "@milaboratory/milaboratories.table.ui": "workspace:*",
-    "@milaboratory/milaboratories.table.workflow": "workspace:*"
+    "@platforma-open/milaboratories.table.model": "workspace:*",
+    "@platforma-open/milaboratories.table.ui": "workspace:*",
+    "@platforma-open/milaboratories.table.workflow": "workspace:*"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
@@ -24,9 +25,9 @@
   },
   "block": {
     "components": {
-      "workflow": "@milaboratory/milaboratories.table.workflow/dist/tengo/tpl/main.plj.gz",
-      "model": "@milaboratory/milaboratories.table.model/dist/model.json",
-      "ui": "@milaboratory/milaboratories.table.ui/dist"
+      "workflow": "@platforma-open/milaboratories.table.workflow/dist/tengo/tpl/main.plj.gz",
+      "model": "@platforma-open/milaboratories.table.model/dist/model.json",
+      "ui": "@platforma-open/milaboratories.table.ui/dist"
     },
     "meta": {
       "title": "Table",
