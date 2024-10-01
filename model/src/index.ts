@@ -5,9 +5,13 @@ import {
   isPColumn,
   type PColumnIdAndSpec,
   type PlDataTableState,
-  type ValueType
+  type ValueType,
+  type JoinEntry,
+  mapJoinEntry,
+  type AxisId,
+  AxisSpec
 } from '@platforma-sdk/model';
-import { type PlDataTableSheet } from '@platforma-sdk/ui-vue';
+import * as lodash from 'lodash';
 
 export type BlockArgs = {};
 
@@ -17,9 +21,10 @@ export type UiState = {
     mainColumn?: PColumnIdAndSpec;
     additionalColumns: PColumnIdAndSpec[];
     enrichmentColumns: PColumnIdAndSpec[];
-    labelColumns: PColumnIdAndSpec[];
+    possiblePartitioningAxes: AxisSpec[];
+    join?: JoinEntry<PColumnIdAndSpec>;
   };
-  partitioningAxes: PlDataTableSheet[];
+  partitioningAxes: AxisId[];
   tableState: PlDataTableState;
 };
 
@@ -27,7 +32,7 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
   .initialArgs({})
   .sections([{ type: 'link', href: '/', label: 'View' }])
   .output('pColumns', (ctx) => {
-    const collection = ctx.resultPool.getDataFromResultPool();
+    const collection = ctx.resultPool.getData();
     if (collection === undefined || !collection.isComplete) return undefined;
 
     const valueTypes = ['Int', 'Long', 'Float', 'Double', 'String', 'Bytes'] as ValueType[];
@@ -43,7 +48,7 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
     }));
   })
   .output('pFrame', (ctx) => {
-    const collection = ctx.resultPool.getDataFromResultPool();
+    const collection = ctx.resultPool.getData();
     if (collection === undefined || !collection.isComplete) return undefined;
 
     const valueTypes = ['Int', 'Long', 'Float', 'Double', 'String', 'Bytes'] as ValueType[];
@@ -51,55 +56,39 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
       .map(({ obj }) => obj)
       .filter(isPColumn)
       .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType));
-    return ctx.createPFrame(pColumns);
+    try {
+      return ctx.createPFrame(pColumns);
+    } catch (err) {
+      console.log('createPFrame failed', err);
+      return undefined;
+    }
   })
   .output('pTable', (ctx) => {
-    if (!ctx.uiState?.group.mainColumn) return undefined;
-    const primaryIds = [
-      ctx.uiState!.group.mainColumn.columnId,
-      ...ctx.uiState!.group.additionalColumns.map((idAndSpec) => idAndSpec.columnId)
-    ];
-    const secondaryIds = [
-      ...ctx.uiState!.group.enrichmentColumns.map((idAndSpec) => idAndSpec.columnId),
-      ...ctx.uiState!.group.labelColumns.map((idAndSpec) => idAndSpec.columnId)
-    ];
+    if (!ctx.uiState?.group.join) return undefined;
 
-    const collection = ctx.resultPool.getDataFromResultPool();
+    const collection = ctx.resultPool.getData();
     if (!collection || !collection.isComplete) return undefined;
 
-    const primaryColumns = collection.entries
-      .map(({ obj }) => obj)
-      .filter(isPColumn)
-      .filter((column) => !!primaryIds.find((id) => id === column.id));
-    if (primaryColumns.length !== primaryIds.length) return undefined;
+    const columns = collection.entries.map(({ obj }) => obj).filter(isPColumn);
+    if (columns.length === 0) return undefined;
 
-    const secondaryColumns = collection.entries
-      .map(({ obj }) => obj)
-      .filter(isPColumn)
-      .filter((column) => !!secondaryIds.find((id) => id === column.id));
-    if (secondaryColumns.length !== secondaryIds.length) return undefined;
+    const join = ctx.uiState.tableState.pTableParams?.join;
+    if (!join) return undefined;
 
-    return ctx.createPTable({
-      src: {
-        type: 'outer',
-        primary: {
-          type: 'full',
-          entries: primaryColumns.map(
-            (column) =>
-              ({
-                type: 'column',
-                column: column
-              }) as const
-          )
-        },
-        secondary: secondaryColumns.map((column) => ({
-          type: 'column',
-          column: column
-        }))
-      },
-      filters: ctx.uiState.tableState.pTableParams?.filters ?? [],
-      sorting: ctx.uiState.tableState.pTableParams?.sorting ?? []
-    });
+    try {
+      return ctx.createPTable({
+        src: mapJoinEntry(join, (idAndSpec) => {
+          const column = lodash.find(columns, (column) => column.id === idAndSpec.columnId);
+          if (!column) throw Error(`column '${column}' not ready`);
+          return column;
+        }),
+        filters: ctx.uiState.tableState.pTableParams?.filters ?? [],
+        sorting: ctx.uiState.tableState.pTableParams?.sorting ?? []
+      });
+    } catch (err) {
+      console.log('createPTable failed', err);
+      return undefined;
+    }
   })
   .done();
 

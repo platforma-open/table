@@ -6,27 +6,14 @@ import { model } from '@platforma-open/milaboratories.table.model';
 import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
   type ValueType,
-  type PValueInt,
-  PValueIntNA,
-  PValueLongNA,
-  type PValueFloat,
-  PValueFloatNA,
-  type PValueDouble,
-  PValueDoubleNA,
-  type PValueString,
-  PValueStringNA,
-  type PValueBytes,
-  PValueBytesNA,
+  getAxisId,
   getAxesId,
   type PColumnIdAndSpec,
-  type PFrameHandle
+  type PObjectId,
+  type JoinEntry
 } from '@platforma-sdk/model';
 import * as lodash from 'lodash';
-import {
-  PlAgDataTable,
-  type PlDataTableSheet,
-  type PlDataTableSettings
-} from '@platforma-sdk/ui-vue';
+import { PlAgDataTable, type PlDataTableSettings } from '@platforma-sdk/ui-vue';
 
 const app = useApp();
 const uiState = app.createUiModel(undefined, () => ({
@@ -35,7 +22,7 @@ const uiState = app.createUiModel(undefined, () => ({
     mainColumn: undefined,
     additionalColumns: [],
     enrichmentColumns: [],
-    labelColumns: []
+    possiblePartitioningAxes: []
   },
   partitioningAxes: [],
   tableState: {
@@ -48,8 +35,7 @@ const uiState = app.createUiModel(undefined, () => ({
 }));
 
 const pfDriver = model.pFrameDriver;
-const pFrame = computed(() => app.getOutputFieldOkOptional('pFrame'));
-const pTable = computed(() => app.getOutputFieldOkOptional('pTable'));
+const pFrame = computed(() => app.outputValues.pFrame);
 
 const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
@@ -67,13 +53,16 @@ const columnOptions = computedAsync(
     if (!pFrame.value) return [];
     const columns = await pfDriver.listColumns(pFrame.value);
     return columns
+      .filter(
+        (idAndSpec) =>
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label')
+      )
       .map((idAndSpec, i) => ({
         text:
           idAndSpec.spec.annotations?.['pl7.app/label']?.trim() ??
           'Unlabelled column ' + i.toString(),
         value: idAndSpec
       }))
-      .filter((option) => option.value.spec.name !== 'pl7.app/label')
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
@@ -127,7 +116,7 @@ const enrichmentOptions = computedAsync(
     return response.hits
       .filter(
         (idAndSpec) =>
-          idAndSpec.spec.name !== 'pl7.app/label' &&
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label') &&
           !lodash.isEqual(idAndSpec.columnId, column.selected?.columnId) &&
           lodash.findIndex(additional.options, (option) =>
             lodash.isEqual(option.value.columnId, idAndSpec.columnId)
@@ -154,34 +143,48 @@ const enrichment = reactive({
   disabled: enrichmentDisabled
 });
 
-async function getLabelColumns(
-  pFrame: PFrameHandle,
-  idsAndSpecs: PColumnIdAndSpec[]
-): Promise<PColumnIdAndSpec[]> {
-  if (!idsAndSpecs.length) return [];
-
-  const response = await pfDriver.findColumns(pFrame, {
-    columnFilter: {
-      name: ['pl7.app/label']
-    },
-    compatibleWith: lodash.uniqWith(
-      idsAndSpecs.map((column) => getAxesId(column.spec.axesSpec).map(lodash.cloneDeep)).flat(),
-      lodash.isEqual
-    ),
-    strictlyCompatible: true
-  });
-  return response.hits;
-}
-
 watch(
   () => uiState.model.group,
   (group) => {
+    const state = [group.mainColumn, group.additionalColumns, group.enrichmentColumns] as const;
+    const prevState = [
+      columnSelected.value,
+      additionalSelected.value,
+      enrichmentSelected.value
+    ] as const;
+    if (lodash.isEqual(state, prevState)) return;
+
     columnSelected.value = group.mainColumn;
     additionalSelected.value = group.additionalColumns;
     enrichmentSelected.value = group.enrichmentColumns;
   },
   { immediate: true }
 );
+
+function makeJoin(
+  mainColumn: PColumnIdAndSpec | undefined,
+  additionalColumns: PColumnIdAndSpec[],
+  enrichmentColumns: PColumnIdAndSpec[]
+): JoinEntry<PColumnIdAndSpec> | undefined {
+  if (!mainColumn) return undefined;
+  return {
+    type: 'outer',
+    primary: {
+      type: 'full',
+      entries: [mainColumn, ...additionalColumns].map(
+        (column) =>
+          ({
+            type: 'column',
+            column: column
+          }) as const
+      )
+    },
+    secondary: enrichmentColumns.map((column) => ({
+      type: 'column',
+      column: column
+    }))
+  };
+}
 
 watch(
   () =>
@@ -209,16 +212,13 @@ watch(
     const [_, prevColumn] = prevState;
 
     if (!lodash.isEqual(column, prevColumn)) {
-      let labelColumns: PColumnIdAndSpec[] = [];
-      if (column) {
-        if (!pFrame) return;
-        labelColumns = await getLabelColumns(pFrame, [column]);
-      }
+      const join = makeJoin(column, [], []);
       uiState.model.group = {
         mainColumn: column,
         additionalColumns: [],
         enrichmentColumns: [],
-        labelColumns: labelColumns
+        possiblePartitioningAxes: (column?.spec.axesSpec ?? []).map(lodash.cloneDeep),
+        join
       };
       uiState.model.partitioningAxes = [];
       uiState.model.tableState = {
@@ -251,132 +251,28 @@ watch(
       });
     })();
 
-    const labelColumns = await getLabelColumns(pFrame, [column, ...enrichment]);
+    const join = makeJoin(column, additional, enrichment);
+    const possiblePartitioningAxes = column.spec.axesSpec.map(lodash.cloneDeep);
 
     uiState.model.group = {
       mainColumn: column,
       additionalColumns: additional,
       enrichmentColumns: enrichment,
-      labelColumns: labelColumns
+      possiblePartitioningAxes,
+      join
     };
   }
 );
 
-function isValueNA(value: unknown, valueType: ValueType): boolean {
-  switch (valueType) {
-    case 'Int':
-      return (value as PValueInt) === PValueIntNA;
-    case 'Long':
-      return (value as bigint) === PValueLongNA;
-    case 'Float':
-      return (value as PValueFloat) === PValueFloatNA;
-    case 'Double':
-      return (value as PValueDouble) === PValueDoubleNA;
-    case 'String':
-      return (value as PValueString) === PValueStringNA;
-    case 'Bytes':
-      return (value as PValueBytes) === PValueBytesNA;
-    default:
-      throw Error(`unsupported data type: ${valueType satisfies never}`);
-  }
-}
-
-function toDisplayValue(
-  value: string | number | bigint | Uint8Array,
-  valueType: ValueType
-): string | number {
-  switch (valueType) {
-    case 'Int':
-      return value as number;
-    case 'Long':
-      return Number(value as bigint);
-    case 'Float':
-      return value as number;
-    case 'Double':
-      return value as number;
-    case 'String':
-      return value as string;
-    case 'Bytes':
-      return Buffer.from(value as Uint8Array).toString('hex');
-    default:
-      throw Error(`unsupported data type: ${valueType satisfies never}`);
-  }
-}
-
-const partitioningEvaluating = ref(false);
 const partitioningPlaceholder = computed(() =>
-  !column.selected
-    ? 'First, select the main column'
-    : partitioningEvaluating.value
-      ? 'Loading axes...'
-      : 'Select axes for partitioning'
+  !column.selected ? 'First, select the main column' : 'Select axes for partitioning'
 );
-const partitioningOptions = computedAsync(
-  async () => {
-    if (!column.selected) return [];
-
-    const pFrameHandle = pFrame.value;
-    if (!pFrameHandle) return [];
-
-    const pTableHandle = pTable.value;
-    if (!pTableHandle) return [];
-
-    const tableSpec = await pfDriver.getSpec(pTableHandle);
-    const axes = tableSpec
-      .filter((spec) => spec.type === 'axis')
-      .filter((spec) => spec.spec.type !== 'Bytes');
-
-    const limit = 100;
-    const possibleValues: Set<string | number>[] = axes.map((_) => new Set());
-    for (const idAndSpec of [column.selected, ...additional.selected]) {
-      for (const columnAxis of idAndSpec.spec.axesSpec) {
-        const i = lodash.findIndex(axes, (axis) => lodash.isEqual(axis.spec, columnAxis));
-        if (i === -1) continue;
-
-        const response = await pfDriver.getUniqueValues(pFrameHandle, {
-          columnId: idAndSpec.columnId,
-          axis: axes[i].id,
-          filters: [],
-          limit
-        });
-        if (response.overflow) {
-          axes.splice(i, 1);
-          continue;
-        }
-
-        const valueType = response.values.type;
-        for (const value of response.values.data) {
-          if (isValueNA(value, valueType) || value === null) continue;
-          possibleValues[i].add(toDisplayValue(value, valueType));
-
-          if (possibleValues[i].size === limit) {
-            axes.splice(i, 1);
-            break;
-          }
-        }
-      }
-    }
-
-    return axes
-      .filter((_, i) => possibleValues[i].size !== 0)
-      .map((axis, i) => ({
-        text: axis.spec.annotations?.['pl7.app/label']?.trim() ?? 'Unlabelled axis ' + i.toString(),
-        value: {
-          axis: axis.id,
-          options: [...possibleValues[i]].map((value) => ({
-            value: value,
-            text: value.toString()
-          }))
-        } as PlDataTableSheet
-      }))
-      .map((option) => {
-        option.value.defaultValue = option.value.options[0].value;
-        return option;
-      });
-  },
-  [],
-  partitioningEvaluating
-);
+const partitioningOptions = computed(() => {
+  return uiState.model.group.possiblePartitioningAxes.map((axis, i) => ({
+    text: axis.annotations?.['pl7.app/label']?.trim() ?? 'Unlabelled axis ' + i.toString(),
+    value: getAxisId(axis)
+  }));
+});
 const partitioningSelected = computed({
   get: () => uiState.model.partitioningAxes,
   set: (partitioningAxes) => {
@@ -390,7 +286,7 @@ const partitioningSelected = computed({
     uiState.model.partitioningAxes = partitioningAxes;
   }
 });
-const partitioningDisabled = computed(() => !column.selected && !partitioningEvaluating.value);
+const partitioningDisabled = computed(() => !column.selected);
 const partitioning = reactive({
   label: 'Axes for partitioning',
   placeholder: partitioningPlaceholder,
@@ -410,9 +306,11 @@ const tableState = computed({
 const tableSettings = computed(
   () =>
     ({
-      sourceType: 'ptable',
-      pTable: app.outputs.pTable,
-      sheets: partitioningSelected.value
+      sourceType: 'pframe',
+      pFrame: app.outputs.pFrame,
+      join: uiState.model.group.join,
+      sheetAxes: uiState.model.partitioningAxes,
+      pTable: app.outputs.pTable
     }) satisfies PlDataTableSettings
 );
 </script>
@@ -420,13 +318,7 @@ const tableSettings = computed(
 <template>
   <div class="box">
     <Transition name="alert-transition">
-      <PlAlert
-        v-if="!pFrame"
-        :modelValue="true"
-        type="warn"
-        :icon="true"
-        label="Columns not loaded"
-      >
+      <PlAlert :modelValue="!pFrame" type="warn" :icon="true" label="Columns not loaded">
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>
@@ -524,6 +416,7 @@ const tableSettings = computed(
 .settings-button {
   gap: 0;
   z-index: 3;
+  min-width: 0 !important;
 }
 .active-button {
   background: var(--btn-active-select);
