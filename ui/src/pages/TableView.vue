@@ -19,7 +19,10 @@ import {
   PValueBytesNA,
   getAxesId,
   type PColumnIdAndSpec,
-  type PFrameHandle
+  type PFrameHandle,
+  type PObjectId,
+  type JoinEntry,
+  mapJoinEntry
 } from '@platforma-sdk/model';
 import * as lodash from 'lodash';
 import {
@@ -35,7 +38,8 @@ const uiState = app.createUiModel(undefined, () => ({
     mainColumn: undefined,
     additionalColumns: [],
     enrichmentColumns: [],
-    labelColumns: []
+    labelColumns: [],
+    possiblePartitioningAxes: []
   },
   partitioningAxes: [],
   tableState: {
@@ -49,7 +53,6 @@ const uiState = app.createUiModel(undefined, () => ({
 
 const pfDriver = model.pFrameDriver;
 const pFrame = computed(() => app.getOutputFieldOkOptional('pFrame'));
-const pTable = computed(() => app.getOutputFieldOkOptional('pTable'));
 
 const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
@@ -67,13 +70,16 @@ const columnOptions = computedAsync(
     if (!pFrame.value) return [];
     const columns = await pfDriver.listColumns(pFrame.value);
     return columns
+      .filter(
+        (idAndSpec) =>
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label')
+      )
       .map((idAndSpec, i) => ({
         text:
           idAndSpec.spec.annotations?.['pl7.app/label']?.trim() ??
           'Unlabelled column ' + i.toString(),
         value: idAndSpec
       }))
-      .filter((option) => option.value.spec.name !== 'pl7.app/label')
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
@@ -127,7 +133,7 @@ const enrichmentOptions = computedAsync(
     return response.hits
       .filter(
         (idAndSpec) =>
-          idAndSpec.spec.name !== 'pl7.app/label' &&
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label') &&
           !lodash.isEqual(idAndSpec.columnId, column.selected?.columnId) &&
           lodash.findIndex(additional.options, (option) =>
             lodash.isEqual(option.value.columnId, idAndSpec.columnId)
@@ -170,7 +176,7 @@ async function getLabelColumns(
     ),
     strictlyCompatible: true
   });
-  return response.hits;
+  return response.hits.filter((idAndSpec) => idAndSpec.spec.axesSpec.length === 1);
 }
 
 watch(
@@ -182,6 +188,32 @@ watch(
   },
   { immediate: true }
 );
+
+function makeJoin(
+  mainColumn: PColumnIdAndSpec | undefined,
+  additionalColumns: PColumnIdAndSpec[],
+  enrichmentColumns: PColumnIdAndSpec[],
+  labelColumns: PColumnIdAndSpec[]
+): JoinEntry<PColumnIdAndSpec> | undefined {
+  if (!mainColumn) return undefined;
+  return {
+    type: 'outer',
+    primary: {
+      type: 'full',
+      entries: [mainColumn, ...additionalColumns].map(
+        (column) =>
+          ({
+            type: 'column',
+            column: column
+          }) as const
+      )
+    },
+    secondary: [...enrichmentColumns, ...labelColumns].map((column) => ({
+      type: 'column',
+      column: column
+    }))
+  };
+}
 
 watch(
   () =>
@@ -214,11 +246,14 @@ watch(
         if (!pFrame) return;
         labelColumns = await getLabelColumns(pFrame, [column]);
       }
+      const join = makeJoin(column, [], [], labelColumns);
       uiState.model.group = {
         mainColumn: column,
         additionalColumns: [],
         enrichmentColumns: [],
-        labelColumns: labelColumns
+        labelColumns,
+        possiblePartitioningAxes: getAxesId(column?.spec.axesSpec ?? []).map(lodash.cloneDeep),
+        join
       };
       uiState.model.partitioningAxes = [];
       uiState.model.tableState = {
@@ -252,12 +287,15 @@ watch(
     })();
 
     const labelColumns = await getLabelColumns(pFrame, [column, ...enrichment]);
+    const join = makeJoin(column, additional, enrichment, labelColumns);
 
     uiState.model.group = {
       mainColumn: column,
       additionalColumns: additional,
       enrichmentColumns: enrichment,
-      labelColumns: labelColumns
+      labelColumns,
+      possiblePartitioningAxes: getAxesId(column.spec.axesSpec).map(lodash.cloneDeep),
+      join
     };
   }
 );
@@ -313,35 +351,63 @@ const partitioningPlaceholder = computed(() =>
 );
 const partitioningOptions = computedAsync(
   async () => {
-    if (!column.selected) return [];
+    const possiblePartitioningAxes = uiState.model.group.possiblePartitioningAxes;
+    if (!possiblePartitioningAxes) return [];
+    const axes = possiblePartitioningAxes.filter((spec) => spec.type !== 'Bytes');
+
+    const join = uiState.model.group.join;
+    if (!join) return [];
 
     const pFrameHandle = pFrame.value;
     if (!pFrameHandle) return [];
 
-    const pTableHandle = pTable.value;
-    if (!pTableHandle) return [];
+    const columns: PColumnIdAndSpec[] = [];
+    mapJoinEntry(join, (idAndSpec) => {
+      columns.push(idAndSpec);
+      return idAndSpec;
+    });
 
-    const tableSpec = await pfDriver.getSpec(pTableHandle);
-    const axes = tableSpec
-      .filter((spec) => spec.type === 'axis')
-      .filter((spec) => spec.spec.type !== 'Bytes');
+    const mapping: [number, number][][] = axes.map((_) => []);
+    const labelCol: (PObjectId | null)[] = axes.map((_) => null);
+    for (let i = 0; i < columns.length; ++i) {
+      const axesId = getAxesId(columns[i].spec.axesSpec);
+      for (let j = 0; j < axesId.length; ++j) {
+        const k = lodash.findIndex(axes, (axis) => lodash.isEqual(axis, axesId[j]));
+        if (k === -1 || labelCol[k]) continue;
+
+        if (axesId.length === 1 && columns[i].spec.name === 'pl7.app/label') {
+          mapping[k] = [[i, j]];
+          labelCol[k] = columns[i].columnId;
+        } else {
+          mapping[k].push([i, j]);
+        }
+      }
+    }
+
+    for (let i = axes.length - 1; i >= 0; --i) {
+      if (!mapping[i].length) {
+        labelCol.splice(i, 1);
+        mapping.splice(i, 1);
+        axes.splice(i, 1);
+      }
+    }
 
     const limit = 100;
     const possibleValues: Set<string | number>[] = axes.map((_) => new Set());
-    for (const idAndSpec of [column.selected, ...additional.selected]) {
-      for (const columnAxis of idAndSpec.spec.axesSpec) {
-        const i = lodash.findIndex(axes, (axis) => lodash.isEqual(axis.spec, columnAxis));
-        if (i === -1) continue;
 
+    loop1: for (let i = axes.length - 1; i >= 0; --i) {
+      for (const [column, _] of mapping[i]) {
         const response = await pfDriver.getUniqueValues(pFrameHandle, {
-          columnId: idAndSpec.columnId,
-          axis: axes[i].id,
+          columnId: columns[column].columnId,
+          ...(!labelCol[i] && { axis: lodash.cloneDeep(axes[i]) }),
           filters: [],
           limit
         });
         if (response.overflow) {
+          labelCol.splice(i, 1);
+          mapping.splice(i, 1);
           axes.splice(i, 1);
-          continue;
+          continue loop1;
         }
 
         const valueType = response.values.type;
@@ -350,29 +416,45 @@ const partitioningOptions = computedAsync(
           possibleValues[i].add(toDisplayValue(value, valueType));
 
           if (possibleValues[i].size === limit) {
+            labelCol.splice(i, 1);
+            mapping.splice(i, 1);
             axes.splice(i, 1);
-            break;
+            continue loop1;
           }
         }
       }
+
+      if (!possibleValues[i].size) {
+        labelCol.splice(i, 1);
+        mapping.splice(i, 1);
+        axes.splice(i, 1);
+        continue loop1;
+      }
     }
 
-    return axes
-      .filter((_, i) => possibleValues[i].size !== 0)
-      .map((axis, i) => ({
-        text: axis.spec.annotations?.['pl7.app/label']?.trim() ?? 'Unlabelled axis ' + i.toString(),
+    const labels = mapping.map(
+      (entries, i) =>
+        columns[entries[0][0]].spec.axesSpec[entries[0][1]].annotations?.[
+          'pl7.app/label'
+        ]?.trim() ?? 'Unlabelled axis ' + i.toString()
+    );
+
+    return axes.map((axis, i) => {
+      const options = [...possibleValues[i]].map((value) => ({
+        value: value,
+        text: value.toString()
+      }));
+      const defaultValue = options[0].value;
+      return {
+        text: labels[i],
         value: {
-          axis: axis.id,
-          options: [...possibleValues[i]].map((value) => ({
-            value: value,
-            text: value.toString()
-          }))
+          axis: lodash.cloneDeep(axis),
+          ...(labelCol[i] && { column: labelCol[i] }),
+          options,
+          defaultValue
         } as PlDataTableSheet
-      }))
-      .map((option) => {
-        option.value.defaultValue = option.value.options[0].value;
-        return option;
-      });
+      };
+    });
   },
   [],
   partitioningEvaluating
@@ -420,13 +502,7 @@ const tableSettings = computed(
 <template>
   <div class="box">
     <Transition name="alert-transition">
-      <PlAlert
-        v-if="!pFrame"
-        :modelValue="true"
-        type="warn"
-        :icon="true"
-        label="Columns not loaded"
-      >
+      <PlAlert :modelValue="!pFrame" type="warn" :icon="true" label="Columns not loaded">
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>
