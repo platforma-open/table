@@ -397,12 +397,14 @@ const partitioningOptions = computedAsync(
 
     loop1: for (let i = axes.length - 1; i >= 0; --i) {
       for (const [column, _] of mapping[i]) {
+        console.log('here 1');
         const response = await pfDriver.getUniqueValues(pFrameHandle, {
           columnId: columns[column].columnId,
           ...(!labelCol[i] && { axis: lodash.cloneDeep(axes[i]) }),
           filters: [],
           limit
         });
+        console.log('here 2');
         if (response.overflow) {
           labelCol.splice(i, 1);
           mapping.splice(i, 1);
