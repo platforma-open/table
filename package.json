@@ -21,7 +21,10 @@
     "prettier": "catalog:"
   },
   "pnpm": {
-    "overrides": {}
+    "overrides": {
+      "@platforma-sdk/ui-vue": "/Users/vadimpiven/Documents/MiLabs/git/platforma/sdk/ui-vue/",
+      "@platforma-sdk/model": "/Users/vadimpiven/Documents/MiLabs/git/platforma/sdk/model/"
+    }
   },
   "block": {
     "components": {

@@ -18,6 +18,8 @@
   },
   "devDependencies": {
     "@platforma-sdk/block-tools": "catalog:",
+    "@types/lodash": "catalog:",
+    "lodash": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"
