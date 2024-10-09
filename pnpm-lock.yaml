@@ -10,8 +10,8 @@ catalogs:
       specifier: ^2.27.9
       version: 2.27.9
     '@milaboratories/uikit':
-      specifier: ^1.2.17
-      version: 1.2.17
+      specifier: ^1.2.18
+      version: 1.2.18
     '@platforma-sdk/block-tools':
       specifier: ^2.3.12
       version: 2.3.12
@@ -22,11 +22,11 @@ catalogs:
       specifier: ^1.14.13
       version: 1.14.13
     '@platforma-sdk/test':
-      specifier: ^1.5.40
+      specifier: ^1.5.41
       version: 1.5.41
     '@platforma-sdk/ui-vue':
-      specifier: ^1.5.40
-      version: 1.5.40
+      specifier: ^1.5.42
+      version: 1.5.42
     '@platforma-sdk/workflow-tengo':
       specifier: ^1.2.11
       version: 1.2.11
@@ -98,7 +98,7 @@ importers:
         version: 1.5.40
       '@platforma-sdk/ui-vue':
         specifier: 'catalog:'
-        version: 1.5.40(typescript@5.6.3)
+        version: 1.5.42(typescript@5.6.3)
     devDependencies:
       '@platforma-sdk/block-tools':
         specifier: 'catalog:'
@@ -139,7 +139,7 @@ importers:
     devDependencies:
       '@milaboratories/uikit':
         specifier: 'catalog:'
-        version: 1.2.17(typescript@5.6.3)
+        version: 1.2.18(typescript@5.6.3)
       '@platforma-open/milaboratories.table.model':
         specifier: workspace:*
         version: link:../model
@@ -148,7 +148,7 @@ importers:
         version: 1.5.40
       '@platforma-sdk/ui-vue':
         specifier: 'catalog:'
-        version: 1.5.40(typescript@5.6.3)
+        version: 1.5.42(typescript@5.6.3)
       '@types/lodash':
         specifier: 'catalog:'
         version: 4.17.10
@@ -828,8 +828,8 @@ packages:
   '@milaboratories/ts-helpers@1.0.30':
     resolution: {integrity: sha512-chFxKNOZDwg52DAHscbTZ9h325KODpw5RZ1nh2VjmRR2EupyiWuHE9czb9f0+8IKy6FnkNjV3Lk2xpZUR1HU4A==}
 
-  '@milaboratories/uikit@1.2.17':
-    resolution: {integrity: sha512-wIcBbyYbXiAYFd77ddmoIUk2GzAlYhV5jj5k7ANy720jXp0ebxLb5hVaY5vKtUZgOlnG7Ogykv0w6EADSRma+A==}
+  '@milaboratories/uikit@1.2.18':
+    resolution: {integrity: sha512-kOhjD1AVN7JZkzAYLsC5tf+pZ0ekNdMaw/+wwXn05hNN6cU2TQK2w7VGTZuED0ahzyCM8X2YPKdsxlcMQXDSiw==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -869,8 +869,8 @@ packages:
   '@platforma-sdk/test@1.5.41':
     resolution: {integrity: sha512-qCdCLbQkKnhVcD8eYNn0YdfuOAXp6OmbzoouUYJc4AuLFqXVj11OkaonetAwVMAr3O7YyweAVI88IF0APoy4sw==}
 
-  '@platforma-sdk/ui-vue@1.5.40':
-    resolution: {integrity: sha512-f0SVsftSdOV4Y5kdHC0EYro+1EAmAxkfRs5QserQm7hFszqvLWorBQrUaInD32oWX+otpoXDWZsPpw+613LM9A==}
+  '@platforma-sdk/ui-vue@1.5.42':
+    resolution: {integrity: sha512-VWj91KAjKG1zI7ILSBPz+xC+mDWzTK5WUT14/bSZojUKZyjrytm0Jfs56YKuU38Lfb1fDy6el0c80lfAoaQ4kg==}
 
   '@platforma-sdk/workflow-tengo@1.2.11':
     resolution: {integrity: sha512-jrogjfTH7CXN3gEv/XV2qEDZQEokGEENjUIgdMwgjafqJjUZ5x9Uvxkytdn3tGJoLWetsKLBfAS+lbr/dGzETw==}
@@ -1218,9 +1218,6 @@ packages:
 
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
-
-  '@types/node@20.16.10':
-    resolution: {integrity: sha512-vQUKgWTjEIRFCvK6CyriPH3MZYiYlNy0fKiEYHWbcoWLEgs4opurGGKlebrTLqdSMIbXImH6XExNiIyNUv3WpA==}
 
   '@types/node@20.16.11':
     resolution: {integrity: sha512-y+cTCACu92FyA5fgQSAI8A1H429g7aSK2HsO7K4XYUWc4dY5IUz55JSDIYT6/VsOLfGy8vmvQYC2hfb0iF16Uw==}
@@ -3605,7 +3602,7 @@ snapshots:
   '@milaboratories/computable@2.1.12':
     dependencies:
       '@milaboratories/ts-helpers': 1.0.30
-      '@types/node': 20.16.10
+      '@types/node': 20.16.11
       utility-types: 3.11.0
 
   '@milaboratories/pframes-node@1.5.10(@milaboratories/pl-model-common@1.3.14)':
@@ -3733,7 +3730,7 @@ snapshots:
     dependencies:
       denque: 2.1.0
 
-  '@milaboratories/uikit@1.2.17(typescript@5.6.3)':
+  '@milaboratories/uikit@1.2.18(typescript@5.6.3)':
     dependencies:
       vue: 3.5.11(typescript@5.6.3)
     transitivePeerDependencies:
@@ -3855,9 +3852,9 @@ snapshots:
       - supports-color
       - terser
 
-  '@platforma-sdk/ui-vue@1.5.40(typescript@5.6.3)':
+  '@platforma-sdk/ui-vue@1.5.42(typescript@5.6.3)':
     dependencies:
-      '@milaboratories/uikit': 1.2.17(typescript@5.6.3)
+      '@milaboratories/uikit': 1.2.18(typescript@5.6.3)
       '@platforma-sdk/model': 1.5.40
       canonicalize: 2.0.0
       lru-cache: 11.0.1
@@ -4303,10 +4300,6 @@ snapshots:
   '@types/lodash@4.17.10': {}
 
   '@types/node@12.20.55': {}
-
-  '@types/node@20.16.10':
-    dependencies:
-      undici-types: 6.19.8
 
   '@types/node@20.16.11':
     dependencies:

@@ -2,7 +2,7 @@
 import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
-import { model } from '@platforma-open/milaboratories.table.model';
+import { model, UiState } from '@platforma-open/milaboratories.table.model';
 import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
   type ValueType,
@@ -16,7 +16,7 @@ import * as lodash from 'lodash';
 import { PlAgDataTable, type PlDataTableSettings } from '@platforma-sdk/ui-vue';
 
 const app = useApp();
-const uiState = app.createUiModel(undefined, () => ({
+const uiState = app.createUiModel<UiState>(undefined, () => ({
   settingsOpened: true,
   group: {
     mainColumn: undefined,
@@ -35,7 +35,7 @@ const uiState = app.createUiModel(undefined, () => ({
 }));
 
 const pfDriver = model.pFrameDriver;
-const pFrame = computed(() => app.outputValues.pFrame);
+const pFrame = computed(() => app.model.outputs.pFrame);
 
 const settingsOpened = computed({
   get: () => uiState.model.settingsOpened,
