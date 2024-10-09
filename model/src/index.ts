@@ -40,12 +40,8 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
       .map(({ obj }) => obj)
       .filter(isPColumn)
       .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType));
-    return pColumns.map((column) => ({
-      id: column.id,
-      spec: column.spec,
-      resourceType: column.data.resourceType,
-      data: column.data.getDataAsJson()
-    }));
+  
+    return pColumns;
   })
   .output('pFrame', (ctx) => {
     const collection = ctx.resultPool.getData();
@@ -56,6 +52,7 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
       .map(({ obj }) => obj)
       .filter(isPColumn)
       .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType));
+  
     try {
       return ctx.createPFrame(pColumns);
     } catch (err) {

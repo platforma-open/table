@@ -1,5 +1,18 @@
 # @platforma-open/milaboratories.table
 
+## 0.5.0
+
+### Minor Changes
+
+- Replace label-axes with label-columns
+
+### Patch Changes
+
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.0
+  - @platforma-open/milaboratories.table.ui@0.5.0
+  - @platforma-open/milaboratories.table.workflow@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes
