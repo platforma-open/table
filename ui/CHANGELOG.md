@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 0.5.0
+
+### Minor Changes
+
+- Replace label-axes with label-columns
+
 ## 0.4.0
 
 ### Minor Changes
