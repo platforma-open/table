@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.test
 
+## 0.5.1
+
+### Patch Changes
+
+- Logo update
+
 ## 0.5.0
 
 ### Minor Changes
