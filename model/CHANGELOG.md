@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.model
 
+## 0.5.1
+
+### Patch Changes
+
+- Logo update
+
 ## 0.5.0
 
 ### Minor Changes
