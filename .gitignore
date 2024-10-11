@@ -3,6 +3,7 @@ dist/
 block-pack/
 dev/
 work/
+log/
 *.tgz
 .DS_Store
 .test_auth.json
