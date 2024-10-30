@@ -3,17 +3,15 @@ import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model, UiState } from '@platforma-open/milaboratories.table.model';
-import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
+import { PlAlert, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
-  type ValueType,
   getAxisId,
   getAxesId,
   type PColumnIdAndSpec,
-  type PObjectId,
   type JoinEntry
 } from '@platforma-sdk/model';
 import * as lodash from 'lodash';
-import { PlAgDataTable, type PlDataTableSettings } from '@platforma-sdk/ui-vue';
+import { PlBlockPage, PlBtnGhost, PlSlideModal, PlAgDataTable, type PlDataTableSettings } from '@platforma-sdk/ui-vue';
 
 const app = useApp();
 const uiState = app.createUiModel<UiState>(undefined, () => ({
@@ -307,86 +305,67 @@ const tableSettings = computed(
   () =>
     ({
       sourceType: 'pframe',
-      pFrame: app.outputs.pFrame,
+      pFrame: app.model.outputs.pFrame,
       join: uiState.model.group.join,
       sheetAxes: uiState.model.partitioningAxes,
-      pTable: app.outputs.pTable
+      pTable: app.model.outputs.pTable
     }) satisfies PlDataTableSettings
 );
 </script>
 
 <template>
-  <div class="box">
+  <PlBlockPage>
+    <template #title>Table</template>
+    <template #append>
+      <PlBtnGhost :icon="'settings-2'" @click.stop="() => settingsOpened = true">Settings</PlBtnGhost>
+    </template>
     <Transition name="alert-transition">
       <PlAlert :modelValue="!pFrame" type="warn" :icon="true" label="Columns not loaded">
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>
-    <div class="container">
-      <div class="table-container">
-        <PlAgDataTable v-model="tableState" :settings="tableSettings" />
-        <div class="overlay">
-          <Transition name="settings-transition">
-            <div class="settings-panel" v-if="settingsOpened">
-              <div class="text-subtitle-s settings-header">Select columns to view</div>
-              <form class="settings-form">
-                <PlDropdown
-                  :label="column.label"
-                  :placeholder="column.placeholder"
-                  :options="column.options"
-                  v-model="column.selected"
-                  clearable
-                  :disabled="column.disabled"
-                />
-                <PlDropdownMulti
-                  :label="additional.label"
-                  :placeholder="additional.placeholder"
-                  :options="additional.options"
-                  v-model="additional.selected"
-                  clearable
-                  :disabled="additional.disabled"
-                />
-                <PlDropdownMulti
-                  :label="enrichment.label"
-                  :placeholder="enrichment.placeholder"
-                  :options="enrichment.options"
-                  v-model="enrichment.selected"
-                  clearable
-                  :disabled="enrichment.disabled"
-                />
-                <PlDropdownMulti
-                  :label="partitioning.label"
-                  :placeholder="partitioning.placeholder"
-                  :options="partitioning.options"
-                  v-model="partitioning.selected"
-                  clearable
-                  :disabled="partitioning.disabled"
-                />
-              </form>
-            </div>
-          </Transition>
-        </div>
-      </div>
-      <PlBtnSecondary
-        size="large"
-        icon="link"
-        class="settings-button"
-        :class="{ 'active-button': settingsOpened }"
-        @click="settingsOpened = !settingsOpened"
-      />
+    <div style="flex: 1">
+      <PlAgDataTable v-model="tableState" :settings="tableSettings" />
     </div>
-  </div>
+  </PlBlockPage>
+  <PlSlideModal v-model="settingsOpened" :shadow="true" :close-on-outside-click="true">
+    <template #title>Settings</template>
+    <PlDropdown
+      :label="column.label"
+      :placeholder="column.placeholder"
+      :options="column.options"
+      v-model="column.selected"
+      clearable
+      :disabled="column.disabled"
+    />
+    <PlDropdownMulti
+      :label="additional.label"
+      :placeholder="additional.placeholder"
+      :options="additional.options"
+      v-model="additional.selected"
+      clearable
+      :disabled="additional.disabled"
+    />
+    <PlDropdownMulti
+      :label="enrichment.label"
+      :placeholder="enrichment.placeholder"
+      :options="enrichment.options"
+      v-model="enrichment.selected"
+      clearable
+      :disabled="enrichment.disabled"
+    />
+    <PlDropdownMulti
+      :label="partitioning.label"
+      :placeholder="partitioning.placeholder"
+      :options="partitioning.options"
+      v-model="partitioning.selected"
+      clearable
+      :disabled="partitioning.disabled"
+    />
+  </PlSlideModal>
 </template>
 
 <style lang="css" scoped>
-.box {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: 12px;
-  margin: 12px;
-  min-width: 760px;
-}
 .alert-transition-enter-active,
 .alert-transition-leave-active {
   transition: all 0.2s ease-in-out;
@@ -394,66 +373,5 @@ const tableSettings = computed(
 .alert-transition-enter-from,
 .alert-transition-leave-to {
   margin-top: -88px;
-}
-.container {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  gap: 12px;
-}
-.table-container {
-  flex: 1;
-  position: relative;
-}
-.overlay {
-  position: absolute;
-  z-index: 2;
-  top: 68px;
-  display: flex;
-  flex-direction: row-reverse;
-  width: calc(100% + 74px);
-}
-.settings-button {
-  gap: 0;
-  z-index: 3;
-  min-width: 0 !important;
-}
-.active-button {
-  background: var(--btn-active-select);
-}
-.settings-transition-enter-active,
-.settings-transition-leave-active {
-  transition: all 0.15s ease-in-out;
-}
-.settings-transition-enter-from,
-.settings-transition-leave-to {
-  transform: translateY(-68px);
-  opacity: 0;
-}
-.settings-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 40%;
-  min-width: 280px;
-  max-width: 420px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color-default);
-  background: var(--bg-elevated-01);
-  box-shadow:
-    0 6px 24px -2px rgba(15, 36, 77, 0.08),
-    0px 4px 12px -2px rgba(15, 36, 77, 0.08);
-}
-.settings-header {
-  padding: 12px;
-  border-radius: 8px 8px 0 0;
-  border-bottom: 1px solid var(--border-color-default);
-  background-color: var(--bg-elevated-02);
-}
-.settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin: 6px 12px 18px;
 }
 </style>
