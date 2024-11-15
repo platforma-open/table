@@ -3,7 +3,6 @@ import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
 import { model, UiState } from '@platforma-open/milaboratories.table.model';
-import { PlAlert, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
   getAxisId,
   getAxesId,
@@ -11,7 +10,17 @@ import {
   type JoinEntry
 } from '@platforma-sdk/model';
 import * as lodash from 'lodash';
-import { PlBlockPage, PlBtnGhost, PlSlideModal, PlAgDataTable, type PlDataTableSettings } from '@platforma-sdk/ui-vue';
+import {
+  PlBlockPage,
+  PlBtnGhost,
+  PlSlideModal,
+  PlAgDataTable,
+  type PlDataTableSettings,
+  PlAlert,
+  PlDropdown,
+  PlDropdownMulti,
+  PlMaskIcon24
+} from '@platforma-sdk/ui-vue';
 
 const app = useApp();
 const uiState = app.createUiModel<UiState>(undefined, () => ({
@@ -317,7 +326,12 @@ const tableSettings = computed(
   <PlBlockPage>
     <template #title>Table</template>
     <template #append>
-      <PlBtnGhost :icon="'settings-2'" @click.stop="() => settingsOpened = true">Settings</PlBtnGhost>
+      <PlBtnGhost @click.stop="() => settingsOpened = true">
+        Settings
+        <template #append>
+          <PlMaskIcon24 name="settings" />
+        </template>
+      </PlBtnGhost>
     </template>
     <Transition name="alert-transition">
       <PlAlert :modelValue="!pFrame" type="warn" :icon="true" label="Columns not loaded">
