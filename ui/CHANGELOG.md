@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 0.5.3
+
+### Patch Changes
+
+- Updated settings button icon
+
 ## 0.5.2
 
 ### Patch Changes
