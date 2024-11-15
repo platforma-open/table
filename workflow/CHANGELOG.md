@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.workflow
 
+## 0.5.4
+
+### Patch Changes
+
+- PlAgDataTable version update
+
 ## 0.5.3
 
 ### Patch Changes

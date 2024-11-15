@@ -8,12 +8,11 @@ packages:
 catalog:
   '@changesets/cli': ^2.27.9
   '@platforma-sdk/block-tools': ^2.3.24
-  '@platforma-sdk/model': ^1.8.0
+  '@platforma-sdk/model': ^1.8.19
   '@platforma-sdk/tengo-builder': ^1.16.1
-  '@platforma-sdk/test': ^1.8.16
-  '@platforma-sdk/ui-vue': ^1.8.18
+  '@platforma-sdk/test': ^1.8.19
+  '@platforma-sdk/ui-vue': ^1.8.19
   '@platforma-sdk/workflow-tengo': ^2.1.0
-
   '@types/lodash': ^4.17.13
   '@types/node': ~20.16.15
   '@vitejs/plugin-vue': ^5.2.0
