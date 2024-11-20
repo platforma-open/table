@@ -7,7 +7,8 @@ import {
   getAxisId,
   getAxesId,
   type PColumnIdAndSpec,
-  type JoinEntry
+  type JoinEntry,
+  PTableColumnSpec
 } from '@platforma-sdk/model';
 import * as lodash from 'lodash';
 import {
@@ -15,6 +16,7 @@ import {
   PlBtnGhost,
   PlSlideModal,
   PlAgDataTable,
+  PlTableFilters,
   type PlDataTableSettings,
   PlAlert,
   PlDropdown,
@@ -25,6 +27,8 @@ import {
 const app = useApp();
 const uiState = app.createUiModel<UiState>(undefined, () => ({
   settingsOpened: true,
+  filtersOpen: false,
+  filterModel: {},
   group: {
     mainColumn: undefined,
     additionalColumns: [],
@@ -320,12 +324,19 @@ const tableSettings = computed(
       pTable: app.model.outputs.pTable
     }) satisfies PlDataTableSettings
 );
+const columns = ref<PTableColumnSpec[]>([]);
 </script>
 
 <template>
   <PlBlockPage>
     <template #title>Table</template>
     <template #append>
+      <PlBtnGhost @click.stop="() => uiState.model.filtersOpen = true">
+        Filters
+        <template #append>
+          <PlMaskIcon24 :name="(app.model.ui.filterModel.filters ?? []).length > 0 ? 'filter-on' : 'filter'"/>
+        </template>
+      </PlBtnGhost>
       <PlBtnGhost @click.stop="() => settingsOpened = true">
         Settings
         <template #append>
@@ -339,9 +350,13 @@ const tableSettings = computed(
       </PlAlert>
     </Transition>
     <div style="flex: 1">
-      <PlAgDataTable v-model="tableState" :settings="tableSettings" />
+      <PlAgDataTable v-model="tableState" :settings="tableSettings" @columns-changed="(newColumns) => columns = newColumns" />
     </div>
   </PlBlockPage>
+  <PlSlideModal v-model="uiState.model.filtersOpen" :shadow="true" :close-on-outside-click="true">
+    <template #title>Filters</template>
+    <PlTableFilters v-model="uiState.model.filterModel" :columns="columns" />
+  </PlSlideModal>
   <PlSlideModal v-model="settingsOpened" :shadow="true" :close-on-outside-click="true">
     <template #title>Settings</template>
     <PlDropdown
