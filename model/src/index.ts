@@ -5,18 +5,20 @@ import {
   isPColumn,
   type PColumnIdAndSpec,
   type PlDataTableState,
+  type PlTableFiltersModel,
   type ValueType,
   type JoinEntry,
   mapJoinEntry,
   type AxisId,
-  AxisSpec
+  AxisSpec,
 } from '@platforma-sdk/model';
-import * as lodash from 'lodash';
 
 export type BlockArgs = {};
 
 export type UiState = {
   settingsOpened: boolean;
+  filtersOpen: boolean;
+  filterModel: PlTableFiltersModel;
   group: {
     mainColumn?: PColumnIdAndSpec;
     additionalColumns: PColumnIdAndSpec[];
@@ -28,8 +30,27 @@ export type UiState = {
   tableState: PlDataTableState;
 };
 
-export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
-  .initialArgs({})
+export const model = BlockModel.create('Heavy')
+  .withArgs({})
+  .withUiState<UiState>({
+    settingsOpened: true,
+    filtersOpen: false,
+    filterModel: {},
+    group: {
+      mainColumn: undefined,
+      additionalColumns: [],
+      enrichmentColumns: [],
+      possiblePartitioningAxes: []
+    },
+    partitioningAxes: [],
+    tableState: {
+      gridState: {},
+      pTableParams: {
+        sorting: [],
+        filters: []
+      }
+    }
+  })
   .sections([{ type: 'link', href: '/', label: 'View' }])
   .output('pColumns', (ctx) => {
     const collection = ctx.resultPool.getData();
@@ -69,19 +90,23 @@ export const model = BlockModel.create<BlockArgs, UiState>('Heavy')
     const columns = collection.entries.map(({ obj }) => obj).filter(isPColumn);
     if (columns.length === 0) return undefined;
 
-    try {
-      return ctx.createPTable({
-        src: mapJoinEntry(join, (idAndSpec) => {
-          const column = lodash.find(columns, (column) => column.id === idAndSpec.columnId);
-          if (!column) throw Error(`column '${column}' not ready`);
-          return column;
-        }),
-        filters: ctx.uiState.tableState.pTableParams?.filters ?? [],
-        sorting: ctx.uiState.tableState.pTableParams?.sorting ?? []
-      });
-    } catch (err) {
-      return undefined;
-    }
+    let columnMissing = false;
+    const src = mapJoinEntry(join, (idAndSpec) => {
+      const column = columns.find((it) => it.id === idAndSpec.columnId);
+      if (!column) columnMissing = true;
+      return column!;
+    });
+    if (columnMissing) return undefined;
+
+    return ctx.createPTable({
+      src,
+      filters: [
+        ...(ctx.uiState.tableState.pTableParams?.filters ?? []),
+        ...(ctx.uiState.filterModel.filters ?? [])
+      ],
+      sorting: ctx.uiState.tableState.pTableParams?.sorting ?? []
+    });
+  
   })
   .done();
 

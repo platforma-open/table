@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.model
 
+## 0.5.5
+
+### Patch Changes
+
+- Added filters support
+
 ## 0.5.4
 
 ### Patch Changes
