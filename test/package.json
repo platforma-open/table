@@ -1,7 +1,7 @@
 {
   "name": "@platforma-open/milaboratories.table.test",
   "private": true,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Block tests",
   "type": "module",
   "scripts": {
