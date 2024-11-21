@@ -45,6 +45,11 @@ const uiState = app.createUiModel<UiState>(undefined, () => ({
   }
 }));
 
+(() => {
+  if (app.model.ui.filtersOpen === undefined) app.model.ui.filtersOpen = false;
+  if (app.model.ui.filterModel === undefined) app.model.ui.filterModel = {};
+})();
+
 const pfDriver = model.pFrameDriver;
 const pFrame = computed(() => app.model.outputs.pFrame);
 

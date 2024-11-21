@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.workflow
 
+## 0.5.7
+
+### Patch Changes
+
+- Added ui state upgrader
+
 ## 0.5.6
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.model
 
+## 0.5.7
+
+### Patch Changes
+
+- Added ui state upgrader
+
 ## 0.5.6
 
 ### Patch Changes
