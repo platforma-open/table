@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.model
 
+## 0.5.8
+
+### Patch Changes
+
+- Dependancy versions bump
+
 ## 0.5.7
 
 ### Patch Changes
