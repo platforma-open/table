@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.workflow
 
+## 0.5.9
+
+### Patch Changes
+
+- Disable modal shadow
+
 ## 0.5.8
 
 ### Patch Changes
