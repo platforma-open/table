@@ -358,11 +358,11 @@ const columns = ref<PTableColumnSpec[]>([]);
       <PlAgDataTable v-model="tableState" :settings="tableSettings" @columns-changed="(newColumns) => columns = newColumns" />
     </div>
   </PlBlockPage>
-  <PlSlideModal v-model="uiState.model.filtersOpen" :shadow="true" :close-on-outside-click="true">
+  <PlSlideModal v-model="uiState.model.filtersOpen" :close-on-outside-click="true">
     <template #title>Filters</template>
     <PlTableFilters v-model="uiState.model.filterModel" :columns="columns" />
   </PlSlideModal>
-  <PlSlideModal v-model="settingsOpened" :shadow="true" :close-on-outside-click="true">
+  <PlSlideModal v-model="settingsOpened" :close-on-outside-click="true">
     <template #title>Settings</template>
     <PlDropdown
       :label="column.label"
