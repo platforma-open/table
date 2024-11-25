@@ -330,19 +330,28 @@ const tableSettings = computed(
     }) satisfies PlDataTableSettings
 );
 const columns = ref<PTableColumnSpec[]>([]);
+
+const hasFilters = computed(
+  () => columns.value.length > 0 && (app.model.ui.filterModel.filters ?? []).length > 0
+);
+const filterIconName = computed(() => (hasFilters.value ? 'filter-on' : 'filter'));
+
+const filterIconColor = computed(() =>
+  hasFilters.value ? { backgroundColor: 'var(--border-color-focus)' } : undefined
+);
 </script>
 
 <template>
   <PlBlockPage>
     <template #title>Table</template>
     <template #append>
-      <PlBtnGhost @click.stop="() => uiState.model.filtersOpen = true">
+      <PlBtnGhost @click.stop="() => (uiState.model.filtersOpen = true)">
         Filters
         <template #append>
-          <PlMaskIcon24 :name="columns.length > 0 && (app.model.ui.filterModel.filters ?? []).length > 0 ? 'filter-on' : 'filter'"/>
+          <PlMaskIcon24 :name="filterIconName" :style="filterIconColor" />
         </template>
       </PlBtnGhost>
-      <PlBtnGhost @click.stop="() => settingsOpened = true">
+      <PlBtnGhost @click.stop="() => (settingsOpened = true)">
         Settings
         <template #append>
           <PlMaskIcon24 name="settings" />
@@ -355,7 +364,11 @@ const columns = ref<PTableColumnSpec[]>([]);
       </PlAlert>
     </Transition>
     <div style="flex: 1">
-      <PlAgDataTable v-model="tableState" :settings="tableSettings" @columns-changed="(newColumns) => columns = newColumns" />
+      <PlAgDataTable
+        v-model="tableState"
+        :settings="tableSettings"
+        @columns-changed="(newColumns) => (columns = newColumns)"
+      />
     </div>
   </PlBlockPage>
   <PlSlideModal v-model="uiState.model.filtersOpen" :close-on-outside-click="true">

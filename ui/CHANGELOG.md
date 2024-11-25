@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 0.5.10
+
+### Patch Changes
+
+- 0000c41: Fix filter button state
+
 ## 0.5.9
 
 ### Patch Changes
