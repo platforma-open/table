@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.workflow
 
+## 0.5.10
+
+### Patch Changes
+
+- PlAgDataTable export CSV
+
 ## 0.5.9
 
 ### Patch Changes

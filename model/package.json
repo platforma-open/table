@@ -1,6 +1,6 @@
 {
   "name": "@platforma-open/milaboratories.table.model",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "description": "Block model",
   "type": "module",
   "main": "dist/index.cjs",
