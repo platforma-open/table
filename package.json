@@ -35,12 +35,14 @@
       "url": "https://github.com/milaboratory/block-table",
       "docs": "https://github.com/milaboratory/block-table/docs",
       "support": "mailto:support@milaboratories.com",
-      "description": "Table view for data from other blocks",
+      "description": "Generate a table from the outputs of multiple blocks.",
       "longDescription": "file:./docs/description.md",
       "changelog": "file:CHANGELOG.md",
       "tags": [
         "table",
-        "view"
+        "view",
+        "join",
+        "integrate"
       ],
       "organization": {
         "name": "MiLaboratories Inc",

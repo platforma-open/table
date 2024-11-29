@@ -1,3 +1,3 @@
 # Description
 
-Table view for data from other blocks.
+Use this block to create a comprehensive table by combining outputs from multiple blocks. Any block that produces a table can serve as input here.
