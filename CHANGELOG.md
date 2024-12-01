@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 0.5.13
+
+### Patch Changes
+
+- Filters fix
+
 ## 0.5.12
 
 ### Patch Changes
