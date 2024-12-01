@@ -22,8 +22,8 @@ catalogs:
       specifier: ^1.14.1
       version: 1.14.1
     '@platforma-sdk/ui-vue':
-      specifier: ^1.14.1
-      version: 1.14.1
+      specifier: ^1.14.2
+      version: 1.14.2
     '@platforma-sdk/workflow-tengo':
       specifier: ^2.5.0
       version: 2.5.0
@@ -92,7 +92,7 @@ importers:
         version: 1.14.1
       '@platforma-sdk/ui-vue':
         specifier: 'catalog:'
-        version: 1.14.1(typescript@5.6.3)
+        version: 1.14.2(typescript@5.6.3)
     devDependencies:
       '@platforma-sdk/block-tools':
         specifier: 'catalog:'
@@ -133,7 +133,7 @@ importers:
         version: 1.14.1
       '@platforma-sdk/ui-vue':
         specifier: 'catalog:'
-        version: 1.14.1(typescript@5.6.3)
+        version: 1.14.2(typescript@5.6.3)
       '@types/lodash':
         specifier: 'catalog:'
         version: 4.17.13
@@ -763,8 +763,8 @@ packages:
   '@platforma-sdk/test@1.14.1':
     resolution: {integrity: sha512-bIGZrukIUsZaEpcTc2Xi8N+HQ5mOMGhnOTsYT+GvD/mGA6cYrZQ1zTh8kgT+iuO92mtGPzVLCVghbHh7s4DI5g==}
 
-  '@platforma-sdk/ui-vue@1.14.1':
-    resolution: {integrity: sha512-C/APgWxCf/xiYjdwOwZz5s4i5YA+WTkB/GViNQI150TmnZMafyTkKy111zd61WK6+EeBPQR7idyEA6TYjKhxzg==}
+  '@platforma-sdk/ui-vue@1.14.2':
+    resolution: {integrity: sha512-F/LdKkufi8tcdNGF5ThqZJXoEi0jDRFE1FPAnyTGbFfAyh3Y76QqIBQGC9IJgWozZlNh6sNz3VFYih6MiMInxg==}
 
   '@platforma-sdk/workflow-tengo@2.5.0':
     resolution: {integrity: sha512-iKF4Xz6V+t/rW37AgShdEPyVOB9qc2enK9Z0JTecbO0BOni6M27n3BD/UKWCmm+dJvhJTU+LkKP88qzerD33xg==}
@@ -3862,7 +3862,7 @@ snapshots:
       - tsx
       - yaml
 
-  '@platforma-sdk/ui-vue@1.14.1(typescript@5.6.3)':
+  '@platforma-sdk/ui-vue@1.14.2(typescript@5.6.3)':
     dependencies:
       '@ag-grid-community/client-side-row-model': 32.3.3
       '@ag-grid-community/core': 32.3.3
