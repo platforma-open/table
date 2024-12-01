@@ -1,5 +1,14 @@
 # @platforma-open/milaboratories.table
 
+## 0.5.12
+
+### Patch Changes
+
+- Table filters redesign
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.11
+  - @platforma-open/milaboratories.table.ui@0.5.12
+
 ## 0.5.11
 
 ### Patch Changes
