@@ -17,6 +17,7 @@ import {
   PlSlideModal,
   PlAgDataTable,
   PlTableFilters,
+  PlAgDataTableToolsPanel,
   type PlDataTableSettings,
   type PlAgDataTableController,
   PlAlert,
@@ -28,7 +29,6 @@ import {
 const app = useApp();
 const uiState = app.createUiModel<UiState>(undefined, () => ({
   settingsOpened: true,
-  filtersOpen: false,
   filterModel: {},
   group: {
     mainColumn: undefined,
@@ -46,8 +46,8 @@ const uiState = app.createUiModel<UiState>(undefined, () => ({
   }
 }));
 
-(() => {
-  if (app.model.ui.filtersOpen === undefined) app.model.ui.filtersOpen = false;
+/** UI state upgrader */ (() => {
+  if ('filtersOpen' in app.model.ui) delete app.model.ui.filtersOpen;
   if (app.model.ui.filterModel === undefined) app.model.ui.filterModel = {};
 })();
 
@@ -331,15 +331,6 @@ const tableSettings = computed(
     }) satisfies PlDataTableSettings
 );
 const columns = ref<PTableColumnSpec[]>([]);
-
-const hasFilters = computed(
-  () => columns.value.length > 0 && (app.model.ui.filterModel.filters ?? []).length > 0
-);
-const filterIconName = computed(() => (hasFilters.value ? 'filter-on' : 'filter'));
-const filterIconColor = computed(() =>
-  hasFilters.value ? { backgroundColor: 'var(--border-color-focus)' } : undefined
-);
-
 const tableInstance = ref<PlAgDataTableController>();
 </script>
 
@@ -347,16 +338,13 @@ const tableInstance = ref<PlAgDataTableController>();
   <PlBlockPage>
     <template #title>Table</template>
     <template #append>
+      <PlAgDataTableToolsPanel>
+        <PlTableFilters v-model="app.model.ui.filterModel" :columns="columns" />
+      </PlAgDataTableToolsPanel>
       <PlBtnGhost @click.stop="() => tableInstance?.exportCsv()">
         Export
         <template #append>
           <PlMaskIcon24 name="export" />
-        </template>
-      </PlBtnGhost>
-      <PlBtnGhost @click.stop="() => (uiState.model.filtersOpen = true)">
-        Filters
-        <template #append>
-          <PlMaskIcon24 :name="filterIconName" :style="filterIconColor" />
         </template>
       </PlBtnGhost>
       <PlBtnGhost @click.stop="() => (settingsOpened = true)">
@@ -375,15 +363,12 @@ const tableInstance = ref<PlAgDataTableController>();
       <PlAgDataTable
         v-model="tableState"
         :settings="tableSettings"
+        show-columns-panel
         @columns-changed="(newColumns) => (columns = newColumns)"
         ref="tableInstance"
       />
     </div>
   </PlBlockPage>
-  <PlSlideModal v-model="uiState.model.filtersOpen" :close-on-outside-click="true">
-    <template #title>Filters</template>
-    <PlTableFilters v-model="uiState.model.filterModel" :columns="columns" />
-  </PlSlideModal>
   <PlSlideModal v-model="settingsOpened" :close-on-outside-click="true">
     <template #title>Settings</template>
     <PlDropdown

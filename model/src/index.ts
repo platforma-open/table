@@ -17,7 +17,6 @@ export type BlockArgs = {};
 
 export type UiState = {
   settingsOpened: boolean;
-  filtersOpen: boolean;
   filterModel: PlTableFiltersModel;
   group: {
     mainColumn?: PColumnIdAndSpec;
@@ -34,7 +33,6 @@ export const model = BlockModel.create('Heavy')
   .withArgs({})
   .withUiState<UiState>({
     settingsOpened: true,
-    filtersOpen: false,
     filterModel: {},
     group: {
       mainColumn: undefined,
