@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.model
 
+## 0.5.12
+
+### Patch Changes
+
+- 85cef8c: PlAgDataTable loading fix
+
 ## 0.5.11
 
 ### Patch Changes
