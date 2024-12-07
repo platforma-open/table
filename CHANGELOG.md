@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 0.5.15
+
+### Patch Changes
+
+- sdk model version bump
+
 ## 0.5.14
 
 ### Patch Changes
