@@ -1,5 +1,71 @@
 # @platforma-open/milaboratories.table.model
 
+## 0.5.12
+
+### Patch Changes
+
+- 85cef8c: PlAgDataTable loading fix
+
+## 0.5.11
+
+### Patch Changes
+
+- Table filters redesign
+
+## 0.5.10
+
+### Patch Changes
+
+- PlAgDataTable export CSV
+
+## 0.5.9
+
+### Patch Changes
+
+- Disable modal shadow
+
+## 0.5.8
+
+### Patch Changes
+
+- Dependancy versions bump
+
+## 0.5.7
+
+### Patch Changes
+
+- Added ui state upgrader
+
+## 0.5.6
+
+### Patch Changes
+
+- Filters bugfix
+
+## 0.5.5
+
+### Patch Changes
+
+- Added filters support
+
+## 0.5.4
+
+### Patch Changes
+
+- PlAgDataTable version update
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated settings button icon
+
+## 0.5.2
+
+### Patch Changes
+
+- Table design update
+
 ## 0.5.1
 
 ### Patch Changes

@@ -1,5 +1,134 @@
 # @platforma-open/milaboratories.table
 
+## 0.5.15
+
+### Patch Changes
+
+- sdk model version bump
+
+## 0.5.14
+
+### Patch Changes
+
+- 85cef8c: PlAgDataTable loading fix
+- Updated dependencies [85cef8c]
+  - @platforma-open/milaboratories.table.model@0.5.12
+  - @platforma-open/milaboratories.table.ui@0.5.13
+  - @platforma-open/milaboratories.table.workflow@0.5.11
+
+## 0.5.13
+
+### Patch Changes
+
+- Filters fix
+
+## 0.5.12
+
+### Patch Changes
+
+- Table filters redesign
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.11
+  - @platforma-open/milaboratories.table.ui@0.5.12
+
+## 0.5.11
+
+### Patch Changes
+
+- PlAgDataTable export CSV
+- Updated dependencies
+  - @platforma-open/milaboratories.table.ui@0.5.11
+  - @platforma-open/milaboratories.table.model@0.5.10
+  - @platforma-open/milaboratories.table.workflow@0.5.10
+
+## 0.5.10
+
+### Patch Changes
+
+- 0000c41: Fix filter button state
+- Updated dependencies [0000c41]
+  - @platforma-open/milaboratories.table.ui@0.5.10
+
+## 0.5.9
+
+### Patch Changes
+
+- Disable modal shadow
+- Updated dependencies
+  - @platforma-open/milaboratories.table.ui@0.5.9
+  - @platforma-open/milaboratories.table.model@0.5.9
+  - @platforma-open/milaboratories.table.workflow@0.5.9
+
+## 0.5.8
+
+### Patch Changes
+
+- Dependancy versions bump
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.8
+  - @platforma-open/milaboratories.table.ui@0.5.8
+  - @platforma-open/milaboratories.table.workflow@0.5.8
+
+## 0.5.7
+
+### Patch Changes
+
+- Added ui state upgrader
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.7
+  - @platforma-open/milaboratories.table.ui@0.5.7
+  - @platforma-open/milaboratories.table.workflow@0.5.7
+
+## 0.5.6
+
+### Patch Changes
+
+- Filters bugfix
+- Updated dependencies
+  - @platforma-open/milaboratories.table.ui@0.5.6
+  - @platforma-open/milaboratories.table.model@0.5.6
+  - @platforma-open/milaboratories.table.workflow@0.5.6
+
+## 0.5.5
+
+### Patch Changes
+
+- Added filters support
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.5
+  - @platforma-open/milaboratories.table.ui@0.5.5
+  - @platforma-open/milaboratories.table.workflow@0.5.5
+
+## 0.5.4
+
+### Patch Changes
+
+- PlAgDataTable version update
+- Updated dependencies
+  - @platforma-open/milaboratories.table.model@0.5.4
+  - @platforma-open/milaboratories.table.ui@0.5.4
+  - @platforma-open/milaboratories.table.workflow@0.5.4
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated settings button icon
+- Updated dependencies
+  - @platforma-open/milaboratories.table.ui@0.5.3
+  - @platforma-open/milaboratories.table.model@0.5.3
+  - @platforma-open/milaboratories.table.workflow@0.5.3
+
+## 0.5.2
+
+### Patch Changes
+
+- Table design update
+- Updated dependencies
+  - @platforma-open/milaboratories.table.ui@0.5.2
+  - @platforma-open/milaboratories.table.model@0.5.2
+  - @platforma-open/milaboratories.table.workflow@0.5.2
+
 ## 0.5.1
 
 ### Patch Changes

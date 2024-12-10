@@ -2,45 +2,42 @@
 import { computed, ref, reactive, watch } from 'vue';
 import { computedAsync } from '@vueuse/core';
 import { useApp } from '../app';
-import { model, UiState } from '@platforma-open/milaboratories.table.model';
-import { PlAlert, PlBtnSecondary, PlDropdown, PlDropdownMulti } from '@milaboratories/uikit';
 import {
-  type ValueType,
-  getAxisId,
   getAxesId,
+  getRawPlatformaInstance,
   type PColumnIdAndSpec,
-  type PObjectId,
-  type JoinEntry
+  PTableColumnSpec
 } from '@platforma-sdk/model';
 import * as lodash from 'lodash';
-import { PlAgDataTable, type PlDataTableSettings } from '@platforma-sdk/ui-vue';
+import {
+  PlBlockPage,
+  PlBtnGhost,
+  PlSlideModal,
+  PlAgDataTable,
+  PlTableFilters,
+  PlAgDataTableToolsPanel,
+  type PlDataTableSettings,
+  type PlAgDataTableController,
+  PlAlert,
+  PlDropdown,
+  PlDropdownMulti,
+  PlMaskIcon24
+} from '@platforma-sdk/ui-vue';
 
 const app = useApp();
-const uiState = app.createUiModel<UiState>(undefined, () => ({
-  settingsOpened: true,
-  group: {
-    mainColumn: undefined,
-    additionalColumns: [],
-    enrichmentColumns: [],
-    possiblePartitioningAxes: []
-  },
-  partitioningAxes: [],
-  tableState: {
-    gridState: {},
-    pTableParams: {
-      sorting: [],
-      filters: []
-    }
-  }
-}));
 
-const pfDriver = model.pFrameDriver;
+/** UI state upgrader */ (() => {
+  if ('filtersOpen' in app.model.ui) delete app.model.ui.filtersOpen;
+  if (app.model.ui.filterModel === undefined) app.model.ui.filterModel = {};
+})();
+
+const pfDriver = getRawPlatformaInstance().pFrameDriver;
 const pFrame = computed(() => app.model.outputs.pFrame);
 
 const settingsOpened = computed({
-  get: () => uiState.model.settingsOpened,
+  get: () => app.model.ui.settingsOpened,
   set: (opened) => {
-    uiState.model.settingsOpened = opened;
+    app.model.ui.settingsOpened = opened;
   }
 });
 
@@ -144,7 +141,7 @@ const enrichment = reactive({
 });
 
 watch(
-  () => uiState.model.group,
+  () => app.model.ui.group,
   (group) => {
     const state = [group.mainColumn, group.additionalColumns, group.enrichmentColumns] as const;
     const prevState = [
@@ -160,31 +157,6 @@ watch(
   },
   { immediate: true }
 );
-
-function makeJoin(
-  mainColumn: PColumnIdAndSpec | undefined,
-  additionalColumns: PColumnIdAndSpec[],
-  enrichmentColumns: PColumnIdAndSpec[]
-): JoinEntry<PColumnIdAndSpec> | undefined {
-  if (!mainColumn) return undefined;
-  return {
-    type: 'outer',
-    primary: {
-      type: 'full',
-      entries: [mainColumn, ...additionalColumns].map(
-        (column) =>
-          ({
-            type: 'column',
-            column: column
-          }) as const
-      )
-    },
-    secondary: enrichmentColumns.map((column) => ({
-      type: 'column',
-      column: column
-    }))
-  };
-}
 
 watch(
   () =>
@@ -212,21 +184,10 @@ watch(
     const [_, prevColumn] = prevState;
 
     if (!lodash.isEqual(column, prevColumn)) {
-      const join = makeJoin(column, [], []);
-      uiState.model.group = {
+      app.model.ui.group = {
         mainColumn: column,
         additionalColumns: [],
-        enrichmentColumns: [],
-        possiblePartitioningAxes: (column?.spec.axesSpec ?? []).map(lodash.cloneDeep),
-        join
-      };
-      uiState.model.partitioningAxes = [];
-      uiState.model.tableState = {
-        gridState: {},
-        pTableParams: {
-          sorting: [],
-          filters: []
-        }
+        enrichmentColumns: []
       };
       return;
     }
@@ -251,142 +212,100 @@ watch(
       });
     })();
 
-    const join = makeJoin(column, additional, enrichment);
-    const possiblePartitioningAxes = column.spec.axesSpec.map(lodash.cloneDeep);
-
-    uiState.model.group = {
+    app.model.ui.group = {
       mainColumn: column,
       additionalColumns: additional,
-      enrichmentColumns: enrichment,
-      possiblePartitioningAxes,
-      join
+      enrichmentColumns: enrichment
     };
   }
 );
 
-const partitioningPlaceholder = computed(() =>
-  !column.selected ? 'First, select the main column' : 'Select axes for partitioning'
-);
-const partitioningOptions = computed(() => {
-  return uiState.model.group.possiblePartitioningAxes.map((axis, i) => ({
-    text: axis.annotations?.['pl7.app/label']?.trim() ?? 'Unlabelled axis ' + i.toString(),
-    value: getAxisId(axis)
-  }));
-});
-const partitioningSelected = computed({
-  get: () => uiState.model.partitioningAxes,
-  set: (partitioningAxes) => {
-    const options = partitioningOptions.value;
-    partitioningAxes.sort((lhs, rhs) => {
-      const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-      const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
-      return li - ri;
-    });
-
-    uiState.model.partitioningAxes = partitioningAxes;
-  }
-});
-const partitioningDisabled = computed(() => !column.selected);
-const partitioning = reactive({
-  label: 'Axes for partitioning',
-  placeholder: partitioningPlaceholder,
-  options: partitioningOptions,
-  selected: partitioningSelected,
-  disabled: partitioningDisabled
-});
-
 const tableState = computed({
-  get: () => uiState.model.tableState,
+  get: () => app.model.ui.tableState,
   set: (tableState) => {
-    if (!lodash.isEqual(tableState, uiState.model.tableState)) {
-      uiState.model.tableState = tableState;
+    if (!lodash.isEqual(tableState, app.model.ui.tableState)) {
+      app.model.ui.tableState = tableState;
     }
   }
 });
-const tableSettings = computed(
-  () =>
-    ({
-      sourceType: 'pframe',
-      pFrame: app.outputs.pFrame,
-      join: uiState.model.group.join,
-      sheetAxes: uiState.model.partitioningAxes,
-      pTable: app.outputs.pTable
-    }) satisfies PlDataTableSettings
+const tableSettings = computed<PlDataTableSettings | undefined>(() =>
+  app.model.ui.group.mainColumn
+    ? {
+        sourceType: 'ptable',
+        pTable: app.model.outputs.pTable,
+        sheets: app.model.outputs.sheets
+      }
+    : undefined
 );
+const columns = ref<PTableColumnSpec[]>([]);
+const tableInstance = ref<PlAgDataTableController>();
 </script>
 
 <template>
-  <div class="box">
+  <PlBlockPage>
+    <template #title>Table</template>
+    <template #append>
+      <PlAgDataTableToolsPanel>
+        <PlTableFilters v-model="app.model.ui.filterModel" :columns="columns" />
+      </PlAgDataTableToolsPanel>
+      <PlBtnGhost @click.stop="() => tableInstance?.exportCsv()">
+        Export
+        <template #append>
+          <PlMaskIcon24 name="export" />
+        </template>
+      </PlBtnGhost>
+      <PlBtnGhost @click.stop="() => (settingsOpened = true)">
+        Settings
+        <template #append>
+          <PlMaskIcon24 name="settings" />
+        </template>
+      </PlBtnGhost>
+    </template>
     <Transition name="alert-transition">
       <PlAlert :modelValue="!pFrame" type="warn" :icon="true" label="Columns not loaded">
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>
-    <div class="container">
-      <div class="table-container">
-        <PlAgDataTable v-model="tableState" :settings="tableSettings" />
-        <div class="overlay">
-          <Transition name="settings-transition">
-            <div class="settings-panel" v-if="settingsOpened">
-              <div class="text-subtitle-s settings-header">Select columns to view</div>
-              <form class="settings-form">
-                <PlDropdown
-                  :label="column.label"
-                  :placeholder="column.placeholder"
-                  :options="column.options"
-                  v-model="column.selected"
-                  clearable
-                  :disabled="column.disabled"
-                />
-                <PlDropdownMulti
-                  :label="additional.label"
-                  :placeholder="additional.placeholder"
-                  :options="additional.options"
-                  v-model="additional.selected"
-                  clearable
-                  :disabled="additional.disabled"
-                />
-                <PlDropdownMulti
-                  :label="enrichment.label"
-                  :placeholder="enrichment.placeholder"
-                  :options="enrichment.options"
-                  v-model="enrichment.selected"
-                  clearable
-                  :disabled="enrichment.disabled"
-                />
-                <PlDropdownMulti
-                  :label="partitioning.label"
-                  :placeholder="partitioning.placeholder"
-                  :options="partitioning.options"
-                  v-model="partitioning.selected"
-                  clearable
-                  :disabled="partitioning.disabled"
-                />
-              </form>
-            </div>
-          </Transition>
-        </div>
-      </div>
-      <PlBtnSecondary
-        size="large"
-        icon="link"
-        class="settings-button"
-        :class="{ 'active-button': settingsOpened }"
-        @click="settingsOpened = !settingsOpened"
+    <div style="flex: 1">
+      <PlAgDataTable
+        v-model="tableState"
+        :settings="tableSettings"
+        show-columns-panel
+        @columns-changed="(newColumns) => (columns = newColumns)"
+        ref="tableInstance"
       />
     </div>
-  </div>
+  </PlBlockPage>
+  <PlSlideModal v-model="settingsOpened" :close-on-outside-click="true">
+    <template #title>Settings</template>
+    <PlDropdown
+      :label="column.label"
+      :placeholder="column.placeholder"
+      :options="column.options"
+      v-model="column.selected"
+      clearable
+      :disabled="column.disabled"
+    />
+    <PlDropdownMulti
+      :label="additional.label"
+      :placeholder="additional.placeholder"
+      :options="additional.options"
+      v-model="additional.selected"
+      clearable
+      :disabled="additional.disabled"
+    />
+    <PlDropdownMulti
+      :label="enrichment.label"
+      :placeholder="enrichment.placeholder"
+      :options="enrichment.options"
+      v-model="enrichment.selected"
+      clearable
+      :disabled="enrichment.disabled"
+    />
+  </PlSlideModal>
 </template>
 
 <style lang="css" scoped>
-.box {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: 12px;
-  margin: 12px;
-  min-width: 760px;
-}
 .alert-transition-enter-active,
 .alert-transition-leave-active {
   transition: all 0.2s ease-in-out;
@@ -394,66 +313,5 @@ const tableSettings = computed(
 .alert-transition-enter-from,
 .alert-transition-leave-to {
   margin-top: -88px;
-}
-.container {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  gap: 12px;
-}
-.table-container {
-  flex: 1;
-  position: relative;
-}
-.overlay {
-  position: absolute;
-  z-index: 2;
-  top: 68px;
-  display: flex;
-  flex-direction: row-reverse;
-  width: calc(100% + 74px);
-}
-.settings-button {
-  gap: 0;
-  z-index: 3;
-  min-width: 0 !important;
-}
-.active-button {
-  background: var(--btn-active-select);
-}
-.settings-transition-enter-active,
-.settings-transition-leave-active {
-  transition: all 0.15s ease-in-out;
-}
-.settings-transition-enter-from,
-.settings-transition-leave-to {
-  transform: translateY(-68px);
-  opacity: 0;
-}
-.settings-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 40%;
-  min-width: 280px;
-  max-width: 420px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color-default);
-  background: var(--bg-elevated-01);
-  box-shadow:
-    0 6px 24px -2px rgba(15, 36, 77, 0.08),
-    0px 4px 12px -2px rgba(15, 36, 77, 0.08);
-}
-.settings-header {
-  padding: 12px;
-  border-radius: 8px 8px 0 0;
-  border-bottom: 1px solid var(--border-color-default);
-  background-color: var(--bg-elevated-02);
-}
-.settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin: 6px 12px 18px;
 }
 </style>
