@@ -17,7 +17,6 @@ import {
   PlTableFilters,
   PlAgDataTableToolsPanel,
   type PlDataTableSettings,
-  type PlAgDataTableController,
   PlAlert,
   PlDropdown,
   PlDropdownMulti,
@@ -238,7 +237,6 @@ const tableSettings = computed<PlDataTableSettings | undefined>(() =>
     : undefined
 );
 const columns = ref<PTableColumnSpec[]>([]);
-const tableInstance = ref<PlAgDataTableController>();
 </script>
 
 <template>
@@ -248,12 +246,6 @@ const tableInstance = ref<PlAgDataTableController>();
       <PlAgDataTableToolsPanel>
         <PlTableFilters v-model="app.model.ui.filterModel" :columns="columns" />
       </PlAgDataTableToolsPanel>
-      <PlBtnGhost @click.stop="() => tableInstance?.exportCsv()">
-        Export
-        <template #append>
-          <PlMaskIcon24 name="export" />
-        </template>
-      </PlBtnGhost>
       <PlBtnGhost @click.stop="() => (settingsOpened = true)">
         Settings
         <template #append>
@@ -271,6 +263,7 @@ const tableInstance = ref<PlAgDataTableController>();
         v-model="tableState"
         :settings="tableSettings"
         show-columns-panel
+        show-export-button
         @columns-changed="(newColumns) => (columns = newColumns)"
         ref="tableInstance"
       />
