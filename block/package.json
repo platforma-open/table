@@ -12,6 +12,7 @@
     "index.js"
   ],
   "dependencies": {
+    "@platforma-sdk/model": "catalog:",
     "@platforma-open/milaboratories.table.model": "workspace:*",
     "@platforma-open/milaboratories.table.ui": "workspace:*",
     "@platforma-open/milaboratories.table.workflow": "workspace:*"
