@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 0.5.14
+
+### Patch Changes
+
+- PlAgDataTable export CSV component
+
 ## 0.5.13
 
 ### Patch Changes
