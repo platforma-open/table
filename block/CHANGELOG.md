@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 0.6.1
+
+### Patch Changes
+
+- 0e431ba: chore: empty update
+
 ## 0.6.0
 
 ### Minor Changes
