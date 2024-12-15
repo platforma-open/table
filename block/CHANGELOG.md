@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 0.6.0
+
+### Minor Changes
+
+- 4036935: chore: bump deps
+
 ## 0.5.17
 
 ### Patch Changes
