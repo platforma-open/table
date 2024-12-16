@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.workflow
 
+## 0.5.13
+
+### Patch Changes
+
+- 95b64ac: Dependancy update
+
 ## 0.5.12
 
 ### Patch Changes

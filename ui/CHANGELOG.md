@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 0.5.15
+
+### Patch Changes
+
+- 95b64ac: Dependancy update
+
 ## 0.5.14
 
 ### Patch Changes
