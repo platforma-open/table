@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.test
 
+## 1.0.0
+
+### Major Changes
+
+- e4c9775: Depepdancy update
+
 ## 0.5.13
 
 ### Patch Changes

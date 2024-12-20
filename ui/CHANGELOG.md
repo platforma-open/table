@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.ui
 
+## 1.0.0
+
+### Major Changes
+
+- e4c9775: Depepdancy update
+
 ## 0.5.15
 
 ### Patch Changes

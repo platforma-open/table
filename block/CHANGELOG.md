@@ -1,5 +1,18 @@
 # @platforma-open/milaboratories.table
 
+## 1.0.0
+
+### Major Changes
+
+- e4c9775: Depepdancy update
+
+### Patch Changes
+
+- Updated dependencies [e4c9775]
+  - @platforma-open/milaboratories.table.model@1.0.0
+  - @platforma-open/milaboratories.table.ui@1.0.0
+  - @platforma-open/milaboratories.table.workflow@1.0.0
+
 ## 0.6.2
 
 ### Patch Changes
