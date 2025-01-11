@@ -7,7 +7,7 @@ packages:
 
 catalog:
   '@changesets/cli': ^2.27.11
-  '@platforma-sdk/block-tools': ^2.5.1
+  '@platforma-sdk/block-tools': ^2.5.3
   '@platforma-sdk/model': ^1.20.27
   '@platforma-sdk/tengo-builder': ^1.17.5
   '@platforma-sdk/test': ^1.20.27
