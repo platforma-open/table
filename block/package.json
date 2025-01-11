@@ -34,7 +34,7 @@
       "support": "mailto:support@milaboratories.com",
       "description": "Table view for data from other blocks",
       "longDescription": "file:../docs/description.md",
-      "changelog": "file:../CHANGELOG.md",
+      "changelog": "file:./CHANGELOG.md",
       "tags": [
         "table",
         "view"
