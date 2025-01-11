@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 1.0.1
+
+### Patch Changes
+
+- 2e59eee: chore: fix changelog
+
 ## 1.0.0
 
 ### Major Changes
