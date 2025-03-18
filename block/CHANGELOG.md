@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 1.0.2
+
+### Patch Changes
+
+- a180f0c: Updated tags and ranking
+
 ## 1.0.1
 
 ### Patch Changes
