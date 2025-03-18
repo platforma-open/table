@@ -37,13 +37,14 @@
       "changelog": "file:./CHANGELOG.md",
       "tags": [
         "table",
-        "view"
+        "visualization"
       ],
       "organization": {
         "name": "MiLaboratories Inc",
         "url": "https://milaboratories.com/",
         "logo": "file:../logos/organization-logo.png"
-      }
+      },
+      "marketplaceRanking": 14000
     }
   }
 }
