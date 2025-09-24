@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.test
 
+## 1.1.0
+
+### Minor Changes
+
+- c904b9e: Migration to new boilerplate, PlAgDataTableV2
+
 ## 1.0.0
 
 ### Major Changes
