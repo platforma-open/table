@@ -5,8 +5,8 @@ import TableView from './pages/TableView.vue';
 export const sdkPlugin = defineApp(model, () => {
   return {
     routes: {
-      '/': TableView
-    }
+      '/': () => TableView,
+    },
   };
 });
 

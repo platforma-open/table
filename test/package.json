@@ -5,7 +5,7 @@
   "description": "Block tests",
   "type": "module",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest --passWithNoTests"
   },
   "files": [],
   "keywords": [],
@@ -13,8 +13,8 @@
     "this-block": "workspace:@platforma-open/milaboratories.table@*"
   },
   "devDependencies": {
+    "@milaboratories/ts-configs": "catalog:",
     "@platforma-sdk/test": "catalog:",
-    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }

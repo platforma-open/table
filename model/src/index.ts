@@ -1,55 +1,42 @@
 import {
   BlockModel,
-  type InferOutputsType,
-  type InferHrefType,
-  isPColumn,
-  type PColumnIdAndSpec,
-  type PlDataTableState,
-  type PlTableFiltersModel,
-  type ValueType,
-  getUniquePartitionKeys,
   createPlDataTableSheet,
-  PObjectId,
-  getAxisId,
-  matchAxisId,
-  PColumn,
-  TreeNodeAccessor,
-  ColumnJoinEntry,
+  createPlDataTableStateV2,
+  createPlDataTableV2,
+  ensureError,
+  getUniquePartitionKeys,
+  isPColumn,
+  type InferOutputsType,
+  type PColumnIdAndSpec,
+  type PlDataTableStateV2,
 } from '@platforma-sdk/model';
 
-export type BlockArgs = {};
+export type BlockArgs = Record<string, never>;
 
 export type UiState = {
-  settingsOpened: boolean;
-  filterModel: PlTableFiltersModel;
   group: {
     mainColumn?: PColumnIdAndSpec;
     additionalColumns: PColumnIdAndSpec[];
     enrichmentColumns: PColumnIdAndSpec[];
   };
-  tableState: PlDataTableState;
+  tableStateV2: PlDataTableStateV2;
 };
 
 export const model = BlockModel.create()
-  .withArgs({})
+  .withArgs<BlockArgs>({})
   .withUiState<UiState>({
-    settingsOpened: true,
-    filterModel: {},
     group: {
+      mainColumn: undefined,
       additionalColumns: [],
-      enrichmentColumns: []
+      enrichmentColumns: [],
     },
-    tableState: {
-      gridState: {}
-    }
+    tableStateV2: createPlDataTableStateV2(),
   })
-  .sections([{ type: 'link', href: '/', label: 'View' }])
+  .sections((_ctx) => [{ type: 'link', href: '/', label: 'View' }])
   .output('pColumns', (ctx) => {
-    const valueTypes = ['Int', 'Long', 'Float', 'Double', 'String', 'Bytes'] as ValueType[];
     const columns = ctx.resultPool.getData().entries
       .map(({ obj }) => obj)
       .filter(isPColumn)
-      .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType))
       .map((column) => ({
         id: column.id,
         spec: column.spec,
@@ -62,17 +49,13 @@ export const model = BlockModel.create()
     const collection = ctx.resultPool.getData();
     if (!collection.isComplete) return undefined;
 
-    const valueTypes = ['Int', 'Long', 'Float', 'Double', 'String', 'Bytes'] as ValueType[];
     const columns = collection.entries
       .map(({ obj }) => obj)
-      .filter(isPColumn)
-      // Remove this filter in 2025
-      .filter((column) => valueTypes.find((valueType) => valueType === column.spec.valueType));
-
+      .filter(isPColumn);
     try {
       return ctx.createPFrame(columns);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      ctx.logError(`Failed to create PFrame: ${ensureError(err)}`);
       return undefined;
     }
   })
@@ -95,55 +78,30 @@ export const model = BlockModel.create()
     const mainColumn = ctx.uiState?.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    // wait until sheet filters are set
-    const sheetFilters = ctx.uiState.tableState.pTableParams?.filters;
-    if (!sheetFilters) return undefined;
-
     const columns = ctx.resultPool.getData().entries
       .map(({ obj }) => obj)
       .filter(isPColumn);
 
     const primaryColumns = [mainColumn, ...ctx.uiState.group.additionalColumns]
       .map((idAndSpec) => columns.find((column) => column.id === idAndSpec.columnId))
-      .filter((column) => column !== undefined)
-      .filter((column) => column.data.getIsReadyOrError());
+      .filter((column) => column !== undefined);
     if (primaryColumns.length < ctx.uiState.group.additionalColumns.length + 1) return undefined;
 
     const secondaryColumns = ctx.uiState.group.enrichmentColumns
       .map((idAndSpec) => columns.find((column) => column.id === idAndSpec.columnId))
-      .filter((column) => column !== undefined)
-      .filter((column) => column.data.getIsReadyOrError());
+      .filter((column) => column !== undefined);
     if (secondaryColumns.length < ctx.uiState.group.enrichmentColumns.length) return undefined;
 
-    const allLabelCols = columns
-      .filter((p) => p.spec.name === 'pl7.app/label' && p.spec.axesSpec.length === 1);
-    labelLoop: for (const labelCol of allLabelCols) {
-      const labelAxisId = getAxisId(labelCol.spec.axesSpec[0]);
-      for (const col of [primaryColumns[0], ...secondaryColumns]) {
-        for (const axis of col.spec.axesSpec) {
-          if (matchAxisId(getAxisId(axis), labelAxisId)) {
-            if (!labelCol.data.getIsReadyOrError()) return undefined;
-            secondaryColumns.push(labelCol);
-            continue labelLoop;
-          }
-        }
-      }
-    }
-
-    const makeColumnJoinEntry = <Col>(column: Col): ColumnJoinEntry<Col> =>
-      ({ type: 'column', column, });
-    return ctx.createPTable({
-      src: {
-        type: 'outer',
-        primary: { type: 'full', entries: primaryColumns.map(makeColumnJoinEntry) },
-        secondary: secondaryColumns.map(makeColumnJoinEntry)
+    return createPlDataTableV2(
+      ctx,
+      [...primaryColumns, ...secondaryColumns],
+      ctx.uiState.tableStateV2,
+      {
+        coreColumnPredicate: ({ columnId }) => primaryColumns.some((column) => column.id === columnId),
+        doNotSkipTechnicalColumns: true,
       },
-      filters: [...sheetFilters, ...(ctx.uiState.filterModel?.filters ?? [])],
-      sorting: ctx.uiState.tableState.pTableParams?.sorting ?? []
-    });
+    );
   })
-  .done();
+  .done(2);
 
 export type BlockOutputs = InferOutputsType<typeof model>;
-
-export type NavigationHref = InferHrefType<typeof model>;

@@ -4,37 +4,19 @@
   "description": "Block model",
   "type": "module",
   "main": "dist/index.cjs",
-  "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
   "scripts": {
-    "build": "tsup && vite build && block-tools build-model"
+    "type-check": "ts-builder types --target block-model",
+    "build": "ts-builder build --target block-model && block-tools build-model",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@platforma-sdk/model": "catalog:",
-    "@platforma-sdk/ui-vue": "catalog:"
+    "@platforma-sdk/model": "catalog:"
   },
   "devDependencies": {
     "@platforma-sdk/block-tools": "catalog:",
-    "tsup": "catalog:",
-    "typescript": "catalog:",
-    "vite": "catalog:"
-  },
-  "tsup": {
-    "entry": [
-      "src/index.ts"
-    ],
-    "splitting": false,
-    "treeshake": true,
-    "clean": true,
-    "format": [
-      "cjs",
-      "esm"
-    ],
-    "dts": true,
-    "minify": false,
-    "sourcemap": true
+    "@platforma-sdk/eslint-config": "catalog:",
+    "@milaboratories/ts-builder": "catalog:",
+    "@milaboratories/ts-configs": "catalog:"
   }
 }
