@@ -6,43 +6,37 @@ import {
   getAxesId,
   getRawPlatformaInstance,
   type PColumnIdAndSpec,
-  PTableColumnSpec
 } from '@platforma-sdk/model';
-import * as lodash from 'lodash';
 import {
+  PlAgDataTableV2,
+  PlAlert,
   PlBlockPage,
   PlBtnGhost,
-  PlSlideModal,
-  PlAgDataTable,
-  PlTableFilters,
-  PlAgDataTableToolsPanel,
-  type PlDataTableSettings,
-  PlAlert,
   PlDropdown,
   PlDropdownMulti,
-  PlMaskIcon24
+  PlMaskIcon24,
+  PlSlideModal,
+  usePlDataTableSettingsV2,
 } from '@platforma-sdk/ui-vue';
+import { deepClone, isJsonEqual } from '@milaboratories/helpers';
 
 const app = useApp();
 
 /** UI state upgrader */ (() => {
   if ('filtersOpen' in app.model.ui) delete app.model.ui.filtersOpen;
-  if (app.model.ui.filterModel === undefined) app.model.ui.filterModel = {};
+  if ('filterModel' in app.model.ui) delete app.model.ui.filterModel;
+  if ('tableState' in app.model.ui) delete app.model.ui.tableState;
+  if ('settingsOpened' in app.model.ui) delete app.model.ui.settingsOpened;
 })();
 
 const pfDriver = getRawPlatformaInstance().pFrameDriver;
 const pFrame = computed(() => app.model.outputs.pFrame);
 
-const settingsOpened = computed({
-  get: () => app.model.ui.settingsOpened,
-  set: (opened) => {
-    app.model.ui.settingsOpened = opened;
-  }
-});
+const settingsOpened = ref(true);
 
 const columnOptionsEvaluating = ref(false);
 const columnPlaceholder = computed(() =>
-  columnOptionsEvaluating.value ? 'Loading columns...' : 'Select the main column'
+  columnOptionsEvaluating.value ? 'Loading columns...' : 'Select the main column',
 );
 const columnOptions = computedAsync(
   async () => {
@@ -51,18 +45,18 @@ const columnOptions = computedAsync(
     return columns
       .filter(
         (idAndSpec) =>
-          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label')
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label'),
       )
       .map((idAndSpec, i) => ({
         text:
-          idAndSpec.spec.annotations?.['pl7.app/label']?.trim() ??
-          'Unlabelled column ' + i.toString(),
-        value: idAndSpec
+          idAndSpec.spec.annotations?.['pl7.app/label']?.trim()
+          ?? 'Unlabelled column ' + i.toString(),
+        value: idAndSpec,
       }))
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
-  columnOptionsEvaluating
+  columnOptionsEvaluating,
 );
 const columnSelected = ref<PColumnIdAndSpec>();
 const column = reactive({
@@ -70,17 +64,17 @@ const column = reactive({
   placeholder: columnPlaceholder,
   options: columnOptions,
   selected: columnSelected,
-  disabled: columnOptionsEvaluating
+  disabled: columnOptionsEvaluating,
 });
 
 const additionalPlaceholder = computed(() =>
-  !column.selected ? 'First, select the main column' : 'Select additional columns'
+  !column.selected ? 'First, select the main column' : 'Select additional columns',
 );
 const additionalOptions = computed(() => {
   return columnOptions.value.filter(
     (option) =>
-      !lodash.isEqual(option.value.columnId, column.selected?.columnId) &&
-      lodash.isEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec)
+      !isJsonEqual(option.value.columnId, column.selected?.columnId)
+      && isJsonEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec),
   );
 });
 const additionalSelected = ref<PColumnIdAndSpec[]>([]);
@@ -90,7 +84,7 @@ const additional = reactive({
   placeholder: additionalPlaceholder,
   options: additionalOptions,
   selected: additionalSelected,
-  disabled: additionalDisabled
+  disabled: additionalDisabled,
 });
 
 const enrichmentEvaluating = ref(false);
@@ -99,35 +93,35 @@ const enrichmentPlaceholder = computed(() =>
     ? 'First, select the main column'
     : enrichmentEvaluating.value
       ? 'Loading columns...'
-      : 'Select enrichment columns'
+      : 'Select enrichment columns',
 );
 const enrichmentOptions = computedAsync(
   async () => {
     if (!pFrame.value || !column.selected) return [];
     const response = await pfDriver.findColumns(pFrame.value, {
       columnFilter: {},
-      compatibleWith: getAxesId(column.selected.spec.axesSpec).map(lodash.cloneDeep),
-      strictlyCompatible: true
+      compatibleWith: getAxesId(column.selected.spec.axesSpec).map(deepClone),
+      strictlyCompatible: true,
     });
     return response.hits
       .filter(
         (idAndSpec) =>
-          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label') &&
-          !lodash.isEqual(idAndSpec.columnId, column.selected?.columnId) &&
-          lodash.findIndex(additional.options, (option) =>
-            lodash.isEqual(option.value.columnId, idAndSpec.columnId)
-          ) === -1
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label')
+          && !isJsonEqual(idAndSpec.columnId, column.selected?.columnId)
+          && additional.options.findIndex((option) =>
+            isJsonEqual(option.value.columnId, idAndSpec.columnId),
+          ) === -1,
       )
       .map((idAndSpec, i) => ({
         text:
-          idAndSpec.spec.annotations?.['pl7.app/label']?.trim() ??
-          'Unlabelled column ' + i.toString(),
-        value: idAndSpec
+          idAndSpec.spec.annotations?.['pl7.app/label']?.trim()
+          ?? 'Unlabelled column ' + i.toString(),
+        value: idAndSpec,
       }))
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
   },
   [],
-  enrichmentEvaluating
+  enrichmentEvaluating,
 );
 const enrichmentSelected = ref<PColumnIdAndSpec[]>([]);
 const enrichmentDisabled = computed(() => !column.selected && !enrichmentEvaluating.value);
@@ -136,7 +130,7 @@ const enrichment = reactive({
   placeholder: enrichmentPlaceholder,
   options: enrichmentOptions,
   selected: enrichmentSelected,
-  disabled: enrichmentDisabled
+  disabled: enrichmentDisabled,
 });
 
 watch(
@@ -146,15 +140,15 @@ watch(
     const prevState = [
       columnSelected.value,
       additionalSelected.value,
-      enrichmentSelected.value
+      enrichmentSelected.value,
     ] as const;
-    if (lodash.isEqual(state, prevState)) return;
+    if (isJsonEqual(state, prevState)) return;
 
     columnSelected.value = group.mainColumn;
     additionalSelected.value = group.additionalColumns;
     enrichmentSelected.value = group.enrichmentColumns;
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -166,10 +160,10 @@ watch(
       additionalSelected.value,
       enrichmentEvaluating.value,
       enrichmentOptions.value,
-      enrichmentSelected.value
+      enrichmentSelected.value,
     ] as const,
   async (state, prevState) => {
-    if (lodash.isEqual(state, prevState)) return;
+    if (isJsonEqual(state, prevState)) return;
 
     const [
       pFrame,
@@ -178,15 +172,15 @@ watch(
       additional,
       enrichmentEvaluating,
       enrichmentOptions,
-      enrichment
+      enrichment,
     ] = state;
     const [_, prevColumn] = prevState;
 
-    if (!lodash.isEqual(column, prevColumn)) {
+    if (!isJsonEqual(column, prevColumn)) {
       app.model.ui.group = {
         mainColumn: column,
         additionalColumns: [],
-        enrichmentColumns: []
+        enrichmentColumns: [],
       };
       return;
     }
@@ -196,8 +190,8 @@ watch(
     (() => {
       const options = additionalOptions;
       additional.sort((lhs, rhs) => {
-        const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-        const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+        const li = options.findIndex((option) => isJsonEqual(option.value, lhs));
+        const ri = options.findIndex((option) => isJsonEqual(option.value, rhs));
         return li - ri;
       });
     })();
@@ -205,47 +199,34 @@ watch(
     (() => {
       const options = enrichmentOptions;
       enrichment.sort((lhs, rhs) => {
-        const li = lodash.findIndex(options, (option) => lodash.isEqual(option.value, lhs));
-        const ri = lodash.findIndex(options, (option) => lodash.isEqual(option.value, rhs));
+        const li = options.findIndex((option) => isJsonEqual(option.value, lhs));
+        const ri = options.findIndex((option) => isJsonEqual(option.value, rhs));
         return li - ri;
       });
     })();
 
-    app.model.ui.group = {
+    const group = {
       mainColumn: column,
       additionalColumns: additional,
-      enrichmentColumns: enrichment
+      enrichmentColumns: enrichment,
     };
-  }
+    if (!isJsonEqual(group, app.model.ui.group)) {
+      app.model.ui.group = group;
+    }
+  },
 );
 
-const tableState = computed({
-  get: () => app.model.ui.tableState,
-  set: (tableState) => {
-    if (!lodash.isEqual(tableState, app.model.ui.tableState)) {
-      app.model.ui.tableState = tableState;
-    }
-  }
+const tableSettings = usePlDataTableSettingsV2({
+  sourceId: () => columnSelected.value ? columnSelected.value.columnId : undefined,
+  sheets: () => app.model.outputs.sheets,
+  model: () => app.model.outputs.pTable,
 });
-const tableSettings = computed<PlDataTableSettings | undefined>(() =>
-  app.model.ui.group.mainColumn
-    ? {
-        sourceType: 'ptable',
-        pTable: app.model.outputs.pTable,
-        sheets: app.model.outputs.sheets
-      }
-    : undefined
-);
-const columns = ref<PTableColumnSpec[]>([]);
 </script>
 
 <template>
   <PlBlockPage>
     <template #title>Table</template>
     <template #append>
-      <PlAgDataTableToolsPanel>
-        <PlTableFilters v-model="app.model.ui.filterModel" :columns="columns" />
-      </PlAgDataTableToolsPanel>
       <PlBtnGhost @click.stop="() => (settingsOpened = true)">
         Settings
         <template #append>
@@ -258,40 +239,35 @@ const columns = ref<PTableColumnSpec[]>([]);
         Outputs of upstream blocks are either not ready or contain malformed columns
       </PlAlert>
     </Transition>
-    <div style="flex: 1">
-      <PlAgDataTable
-        v-model="tableState"
-        :settings="tableSettings"
-        show-columns-panel
-        show-export-button
-        @columns-changed="(newColumns) => (columns = newColumns)"
-        ref="tableInstance"
-      />
-    </div>
+    <PlAgDataTableV2
+      v-model="app.model.ui.tableStateV2"
+      :settings="tableSettings"
+      show-export-button
+    />
   </PlBlockPage>
   <PlSlideModal v-model="settingsOpened" :close-on-outside-click="true">
     <template #title>Settings</template>
     <PlDropdown
+      v-model="column.selected"
       :label="column.label"
       :placeholder="column.placeholder"
       :options="column.options"
-      v-model="column.selected"
       clearable
       :disabled="column.disabled"
     />
     <PlDropdownMulti
+      v-model="additional.selected"
       :label="additional.label"
       :placeholder="additional.placeholder"
       :options="additional.options"
-      v-model="additional.selected"
       clearable
       :disabled="additional.disabled"
     />
     <PlDropdownMulti
+      v-model="enrichment.selected"
       :label="enrichment.label"
       :placeholder="enrichment.placeholder"
       :options="enrichment.options"
-      v-model="enrichment.selected"
       clearable
       :disabled="enrichment.disabled"
     />
