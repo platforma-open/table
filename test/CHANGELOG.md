@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.test
 
+## 1.1.1
+
+### Patch Changes
+
+- d2e9f5b: Technical release
+
 ## 1.1.0
 
 ### Minor Changes
