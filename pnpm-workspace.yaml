@@ -6,17 +6,17 @@ packages:
   - block
 
 catalog:
-  "@milaboratories/pl-model-common": ^1.20.0
-  "@platforma-sdk/model": ^1.43.21
-  "@platforma-sdk/ui-vue": ^1.43.21
-  "@milaboratories/helpers": ^1.9.0
-  "@platforma-sdk/workflow-tengo": ^5.3.3
-  "@platforma-sdk/block-tools": ^2.6.14
-  "@platforma-sdk/test": ^1.43.21
-  "@platforma-sdk/tengo-builder": ^2.3.0
+  "@milaboratories/pl-model-common": ^1.21.4
+  "@platforma-sdk/model": ^1.45.0
+  "@platforma-sdk/ui-vue": ^1.45.5
+  "@milaboratories/helpers": ^1.12.0
+  "@platforma-sdk/workflow-tengo": ^5.5.5
+  "@platforma-sdk/block-tools": ^2.6.16
+  "@platforma-sdk/test": ^1.45.6
+  "@platforma-sdk/tengo-builder": ^2.3.3
   "@milaboratories/ts-configs": ^1.0.6
   "@milaboratories/ts-builder": ^1.0.5
-  "@platforma-sdk/package-builder": ^3.8.1
+  "@platforma-sdk/package-builder": ^3.10.6
   "@platforma-sdk/eslint-config": ^1.1.0
   "@platforma-sdk/blocks-deps-updater": ^2.0.0
   
