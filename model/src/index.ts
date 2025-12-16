@@ -98,7 +98,6 @@ export const model = BlockModel.create()
       ctx.uiState.tableStateV2,
       {
         coreColumnPredicate: ({ columnId }) => primaryColumns.some((column) => column.id === columnId),
-        doNotSkipTechnicalColumns: true,
       },
     );
   })
