@@ -15,6 +15,8 @@
   "devDependencies": {
     "@milaboratories/ts-configs": "catalog:",
     "@platforma-sdk/test": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }
