@@ -1,5 +1,13 @@
 # @platforma-open/milaboratories.table
 
+## 1.1.2
+
+### Patch Changes
+
+- Updated dependencies [bd8924a]
+  - @platforma-open/milaboratories.table.model@1.1.2
+  - @platforma-open/milaboratories.table.ui@1.1.2
+
 ## 1.1.1
 
 ### Patch Changes

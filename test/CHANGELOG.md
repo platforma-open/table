@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table.test
 
+## 1.1.2
+
+### Patch Changes
+
+- bd8924a: Update SDK
+
 ## 1.1.1
 
 ### Patch Changes
