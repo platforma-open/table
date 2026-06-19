@@ -1,38 +1,22 @@
 import {
-  BlockModel,
+  BlockModelV3,
+  collectCtxColumnSnapshotProviders,
+  ColumnCollectionBuilder,
   createPlDataTableSheet,
-  createPlDataTableStateV2,
-  createPlDataTableV2,
+  createPlDataTableV3,
   ensureError,
   getUniquePartitionKeys,
   isPColumn,
   type InferOutputsType,
-  type PColumnIdAndSpec,
-  type PlDataTableStateV2,
 } from "@platforma-sdk/model";
+import { blockDataModel } from "./dataModel";
+import type { BlockArgs } from "./types";
 
-export type BlockArgs = Record<string, never>;
+export { blockDataModel } from "./dataModel";
+export * from "./types";
 
-export type UiState = {
-  group: {
-    mainColumn?: PColumnIdAndSpec;
-    additionalColumns: PColumnIdAndSpec[];
-    enrichmentColumns: PColumnIdAndSpec[];
-  };
-  tableStateV2: PlDataTableStateV2;
-};
-
-export const model = BlockModel.create()
-  .withArgs<BlockArgs>({})
-  .withUiState<UiState>({
-    group: {
-      mainColumn: undefined,
-      additionalColumns: [],
-      enrichmentColumns: [],
-    },
-    tableStateV2: createPlDataTableStateV2(),
-  })
-  .sections((_ctx) => [{ type: "link", href: "/", label: "View" }])
+export const platforma = BlockModelV3.create(blockDataModel)
+  .args<BlockArgs>(() => ({}))
   .output("pColumns", (ctx) => {
     const columns = ctx.resultPool
       .getData()
@@ -59,7 +43,7 @@ export const model = BlockModel.create()
     }
   })
   .output("sheets", (ctx) => {
-    const mainColumn = ctx.uiState?.group.mainColumn;
+    const mainColumn = ctx.data.group.mainColumn;
     if (!mainColumn) return undefined;
 
     const column = ctx.resultPool
@@ -75,34 +59,41 @@ export const model = BlockModel.create()
     return r.map((values, i) => createPlDataTableSheet(ctx, column.spec.axesSpec[i], values));
   })
   .outputWithStatus("pTable", (ctx) => {
-    const mainColumn = ctx.uiState?.group.mainColumn;
+    const mainColumn = ctx.data.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    const columns = ctx.resultPool
-      .getData()
-      .entries.map(({ obj }) => obj)
-      .filter(isPColumn);
+    // Snapshots (with real data status) for every result-pool column, via the
+    // canonical collection builder — no hand-rolled ColumnSnapshots.
+    const collection = new ColumnCollectionBuilder(ctx.getService("pframeSpec"))
+      .addSources(collectCtxColumnSnapshotProviders(ctx))
+      .build();
+    if (!collection) return undefined;
+    const snapshots = collection.findColumns();
+    collection.dispose();
 
-    const primaryColumns = [mainColumn, ...ctx.uiState.group.additionalColumns]
-      .map((idAndSpec) => columns.find((column) => column.id === idAndSpec.columnId))
-      .filter((column) => column !== undefined);
-    if (primaryColumns.length < ctx.uiState.group.additionalColumns.length + 1) return undefined;
+    const byId = new Map(snapshots.map((snapshot) => [snapshot.id, snapshot]));
 
-    const secondaryColumns = ctx.uiState.group.enrichmentColumns
-      .map((idAndSpec) => columns.find((column) => column.id === idAndSpec.columnId))
-      .filter((column) => column !== undefined);
-    if (secondaryColumns.length < ctx.uiState.group.enrichmentColumns.length) return undefined;
+    const primaryIds = [mainColumn, ...ctx.data.group.additionalColumns];
+    const primaryColumns = primaryIds
+      .map((idAndSpec) => byId.get(idAndSpec.columnId))
+      .filter((snapshot) => snapshot !== undefined);
+    if (primaryColumns.length < primaryIds.length) return undefined;
 
-    return createPlDataTableV2(
-      ctx,
-      [...primaryColumns, ...secondaryColumns],
-      ctx.uiState.tableStateV2,
-      {
-        coreColumnPredicate: ({ columnId }) =>
-          primaryColumns.some((column) => column.id === columnId),
-      },
-    );
+    const secondaryColumns = ctx.data.group.enrichmentColumns
+      .map((idAndSpec) => byId.get(idAndSpec.columnId))
+      .filter((snapshot) => snapshot !== undefined);
+    if (secondaryColumns.length < ctx.data.group.enrichmentColumns.length) return undefined;
+
+    return createPlDataTableV3(ctx, {
+      columns: [
+        ...primaryColumns.map((column) => ({ column, isPrimary: true })),
+        ...secondaryColumns.map((column) => ({ column, isPrimary: false })),
+      ],
+      tableState: ctx.data.tableStateV2,
+    });
   })
-  .done(2);
+  .sections(() => [{ type: "link" as const, href: "/" as const, label: "View" }])
+  .done();
 
-export type BlockOutputs = InferOutputsType<typeof model>;
+export type Platforma = typeof platforma;
+export type BlockOutputs = InferOutputsType<typeof platforma>;

@@ -18,13 +18,6 @@ import { deepClone, isJsonEqual } from "@milaboratories/helpers";
 
 const app = useApp();
 
-/** UI state upgrader */ (() => {
-  if ("filtersOpen" in app.model.ui) delete app.model.ui.filtersOpen;
-  if ("filterModel" in app.model.ui) delete app.model.ui.filterModel;
-  if ("tableState" in app.model.ui) delete app.model.ui.tableState;
-  if ("settingsOpened" in app.model.ui) delete app.model.ui.settingsOpened;
-})();
-
 const pfDriver = getRawPlatformaInstance().pFrameDriver;
 const pFrame = computed(() => app.model.outputs.pFrame);
 
@@ -130,7 +123,7 @@ const enrichment = reactive({
 });
 
 watch(
-  () => app.model.ui.group,
+  () => app.model.data.group,
   (group) => {
     const state = [group.mainColumn, group.additionalColumns, group.enrichmentColumns] as const;
     const prevState = [
@@ -173,7 +166,7 @@ watch(
     const [_, prevColumn] = prevState;
 
     if (!isJsonEqual(column, prevColumn)) {
-      app.model.ui.group = {
+      app.model.data.group = {
         mainColumn: column,
         additionalColumns: [],
         enrichmentColumns: [],
@@ -206,8 +199,8 @@ watch(
       additionalColumns: additional,
       enrichmentColumns: enrichment,
     };
-    if (!isJsonEqual(group, app.model.ui.group)) {
-      app.model.ui.group = group;
+    if (!isJsonEqual(group, app.model.data.group)) {
+      app.model.data.group = group;
     }
   },
 );
@@ -236,7 +229,7 @@ const tableSettings = usePlDataTableSettingsV2({
       </PlAlert>
     </Transition>
     <PlAgDataTableV2
-      v-model="app.model.ui.tableStateV2"
+      v-model="app.model.data.tableStateV2"
       :settings="tableSettings"
       show-export-button
     />
