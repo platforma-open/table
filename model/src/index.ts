@@ -74,7 +74,7 @@ export const model = BlockModel.create()
 
     return r.map((values, i) => createPlDataTableSheet(ctx, column.spec.axesSpec[i], values));
   })
-  .output("pTable", (ctx) => {
+  .outputWithStatus("pTable", (ctx) => {
     const mainColumn = ctx.uiState?.group.mainColumn;
     if (!mainColumn) return undefined;
 
