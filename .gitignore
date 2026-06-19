@@ -9,3 +9,6 @@ log/
 .test_auth.json
 .turbo
 vite.config.*.timestamp-*
+software/**/*.tgz
+.vscode/sftp.json
+test-dry-run.json

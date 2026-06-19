@@ -9,7 +9,7 @@ import {
   type InferOutputsType,
   type PColumnIdAndSpec,
   type PlDataTableStateV2,
-} from '@platforma-sdk/model';
+} from "@platforma-sdk/model";
 
 export type BlockArgs = Record<string, never>;
 
@@ -32,10 +32,11 @@ export const model = BlockModel.create()
     },
     tableStateV2: createPlDataTableStateV2(),
   })
-  .sections((_ctx) => [{ type: 'link', href: '/', label: 'View' }])
-  .output('pColumns', (ctx) => {
-    const columns = ctx.resultPool.getData().entries
-      .map(({ obj }) => obj)
+  .sections((_ctx) => [{ type: "link", href: "/", label: "View" }])
+  .output("pColumns", (ctx) => {
+    const columns = ctx.resultPool
+      .getData()
+      .entries.map(({ obj }) => obj)
       .filter(isPColumn)
       .map((column) => ({
         id: column.id,
@@ -45,13 +46,11 @@ export const model = BlockModel.create()
       }));
     return columns;
   })
-  .output('pFrame', (ctx) => {
+  .output("pFrame", (ctx) => {
     const collection = ctx.resultPool.getData();
     if (!collection.isComplete) return undefined;
 
-    const columns = collection.entries
-      .map(({ obj }) => obj)
-      .filter(isPColumn);
+    const columns = collection.entries.map(({ obj }) => obj).filter(isPColumn);
     try {
       return ctx.createPFrame(columns);
     } catch (err: unknown) {
@@ -59,12 +58,13 @@ export const model = BlockModel.create()
       return undefined;
     }
   })
-  .output('sheets', (ctx) => {
+  .output("sheets", (ctx) => {
     const mainColumn = ctx.uiState?.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    const column = ctx.resultPool.getData().entries
-      .map(({ obj }) => obj)
+    const column = ctx.resultPool
+      .getData()
+      .entries.map(({ obj }) => obj)
       .filter(isPColumn)
       .find((it) => it.id === mainColumn.columnId);
     if (!column) return undefined;
@@ -74,12 +74,13 @@ export const model = BlockModel.create()
 
     return r.map((values, i) => createPlDataTableSheet(ctx, column.spec.axesSpec[i], values));
   })
-  .output('pTable', (ctx) => {
+  .output("pTable", (ctx) => {
     const mainColumn = ctx.uiState?.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    const columns = ctx.resultPool.getData().entries
-      .map(({ obj }) => obj)
+    const columns = ctx.resultPool
+      .getData()
+      .entries.map(({ obj }) => obj)
       .filter(isPColumn);
 
     const primaryColumns = [mainColumn, ...ctx.uiState.group.additionalColumns]
@@ -97,7 +98,8 @@ export const model = BlockModel.create()
       [...primaryColumns, ...secondaryColumns],
       ctx.uiState.tableStateV2,
       {
-        coreColumnPredicate: ({ columnId }) => primaryColumns.some((column) => column.id === columnId),
+        coreColumnPredicate: ({ columnId }) =>
+          primaryColumns.some((column) => column.id === columnId),
       },
     );
   })

@@ -1,26 +1,25 @@
 packages:
-  - workflow
-  - model
-  - ui
-  - test
   - block
+  - model
+  - test
+  - ui
+  - workflow
 
 catalog:
   '@milaboratories/pl-model-common': ^1.21.10
-  '@platforma-sdk/model': ^1.48.4
-  '@platforma-sdk/ui-vue': ^1.48.5
+  '@platforma-sdk/model': 1.79.14
+  '@platforma-sdk/ui-vue': 1.79.14
   '@milaboratories/helpers': ^1.12.0
-  '@platforma-sdk/workflow-tengo': ^5.7.1
-  '@platforma-sdk/block-tools': ^2.6.27
-  '@platforma-sdk/test': ^1.48.5
-  '@platforma-sdk/tengo-builder': ^2.4.2
-  '@milaboratories/ts-configs': ^1.2.0
-  '@milaboratories/ts-builder': ^1.2.1
-  '@platforma-sdk/package-builder': ^3.10.7
-  '@platforma-sdk/eslint-config': ^1.2.0
+  '@platforma-sdk/workflow-tengo': 6.6.3
+  '@platforma-sdk/block-tools': 2.11.0
+  '@platforma-sdk/test': 1.79.14
+  '@platforma-sdk/tengo-builder': 4.0.8
+  '@milaboratories/ts-configs': 1.2.3
+  '@milaboratories/ts-builder': 1.5.2
+  '@platforma-sdk/package-builder': 3.13.0
   '@platforma-sdk/blocks-deps-updater': ^2.0.0
 
-  'vue': ^3.5.25
+  'vue': 3.5.24
   '@vueuse/core': ^13.9.0
 
   'vitest': ^3.2.4
@@ -31,3 +30,4 @@ catalog:
   'typescript': ~5.6.3
   'eslint': ^9.39.2
   '@types/node': ~24.5.2
+  shx: ~0.4.0
