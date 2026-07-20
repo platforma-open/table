@@ -1,13 +1,15 @@
 import {
   BlockModelV3,
-  collectCtxColumnSnapshotProviders,
-  ColumnCollectionBuilder,
+  ColumnRecipe,
   createPlDataTableSheet,
   createPlDataTableV3,
   ensureError,
   getUniquePartitionKeys,
   isPColumn,
   type InferOutputsType,
+  type PColumn,
+  type PColumnIdAndSpec,
+  type TreeNodeAccessor,
 } from "@platforma-sdk/model";
 import { blockDataModel } from "./dataModel";
 import type { BlockArgs } from "./types";
@@ -21,7 +23,7 @@ export const platforma = BlockModelV3.create(blockDataModel)
     const columns = ctx.resultPool
       .getData()
       .entries.map(({ obj }) => obj)
-      .filter(isPColumn)
+      .filter((obj): obj is PColumn<TreeNodeAccessor> => isPColumn(obj))
       .map((column) => ({
         id: column.id,
         spec: column.spec,
@@ -34,7 +36,9 @@ export const platforma = BlockModelV3.create(blockDataModel)
     const collection = ctx.resultPool.getData();
     if (!collection.isComplete) return undefined;
 
-    const columns = collection.entries.map(({ obj }) => obj).filter(isPColumn);
+    const columns = collection.entries
+      .map(({ obj }) => obj)
+      .filter((obj): obj is PColumn<TreeNodeAccessor> => isPColumn(obj));
     try {
       return ctx.createPFrame(columns);
     } catch (err: unknown) {
@@ -49,7 +53,7 @@ export const platforma = BlockModelV3.create(blockDataModel)
     const column = ctx.resultPool
       .getData()
       .entries.map(({ obj }) => obj)
-      .filter(isPColumn)
+      .filter((obj): obj is PColumn<TreeNodeAccessor> => isPColumn(obj))
       .find((it) => it.id === mainColumn.columnId);
     if (!column) return undefined;
 
@@ -62,33 +66,23 @@ export const platforma = BlockModelV3.create(blockDataModel)
     const mainColumn = ctx.data.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    // Snapshots (with real data status) for every result-pool column, via the
-    // canonical collection builder — no hand-rolled ColumnSnapshots.
-    const collection = new ColumnCollectionBuilder(ctx.getService("pframeSpec"))
-      .addSources(collectCtxColumnSnapshotProviders(ctx))
-      .build();
-    if (!collection) return undefined;
-    const snapshots = collection.findColumns();
-    collection.dispose();
+    // Build column recipes straight from the stored PObjectIds. A recipe factory
+    // returns undefined when the referenced column's spec is not resolvable in
+    // the active render ctx (e.g. still absent from the pool), which gives us the
+    // same "all selected columns must be present" gating the previous
+    // snapshot-collection did before rendering the table.
+    const toRecipe = (id: PColumnIdAndSpec) =>
+      ColumnRecipe(id.columnId as Parameters<typeof ColumnRecipe>[0]);
 
-    const byId = new Map(snapshots.map((snapshot) => [snapshot.id, snapshot]));
+    const primaryColumns = [mainColumn, ...ctx.data.group.additionalColumns].map(toRecipe);
+    if (primaryColumns.some((recipe) => recipe === undefined)) return undefined;
 
-    const primaryIds = [mainColumn, ...ctx.data.group.additionalColumns];
-    const primaryColumns = primaryIds
-      .map((idAndSpec) => byId.get(idAndSpec.columnId))
-      .filter((snapshot) => snapshot !== undefined);
-    if (primaryColumns.length < primaryIds.length) return undefined;
-
-    const secondaryColumns = ctx.data.group.enrichmentColumns
-      .map((idAndSpec) => byId.get(idAndSpec.columnId))
-      .filter((snapshot) => snapshot !== undefined);
-    if (secondaryColumns.length < ctx.data.group.enrichmentColumns.length) return undefined;
+    const secondaryColumns = ctx.data.group.enrichmentColumns.map(toRecipe);
+    if (secondaryColumns.some((recipe) => recipe === undefined)) return undefined;
 
     return createPlDataTableV3(ctx, {
-      columns: [
-        ...primaryColumns.map((column) => ({ column, isPrimary: true })),
-        ...secondaryColumns.map((column) => ({ column, isPrimary: false })),
-      ],
+      primaryColumns: primaryColumns as ColumnRecipe[],
+      columns: secondaryColumns as ColumnRecipe[],
       tableState: ctx.data.tableStateV2,
     });
   })
