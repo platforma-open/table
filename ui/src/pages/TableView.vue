@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, reactive, watch } from 'vue';
-import { computedAsync } from '@vueuse/core';
-import { useApp } from '../app';
-import {
-  getAxesId,
-  getRawPlatformaInstance,
-  type PColumnIdAndSpec,
-} from '@platforma-sdk/model';
+import { computed, ref, reactive, watch } from "vue";
+import { computedAsync } from "@vueuse/core";
+import { useApp } from "../app";
+import { getAxesId, getRawPlatformaInstance, type PColumnIdAndSpec } from "@platforma-sdk/model";
 import {
   PlAgDataTableV2,
   PlAlert,
@@ -17,17 +13,10 @@ import {
   PlMaskIcon24,
   PlSlideModal,
   usePlDataTableSettingsV2,
-} from '@platforma-sdk/ui-vue';
-import { deepClone, isJsonEqual } from '@milaboratories/helpers';
+} from "@platforma-sdk/ui-vue";
+import { deepClone, isJsonEqual } from "@milaboratories/helpers";
 
 const app = useApp();
-
-/** UI state upgrader */ (() => {
-  if ('filtersOpen' in app.model.ui) delete app.model.ui.filtersOpen;
-  if ('filterModel' in app.model.ui) delete app.model.ui.filterModel;
-  if ('tableState' in app.model.ui) delete app.model.ui.tableState;
-  if ('settingsOpened' in app.model.ui) delete app.model.ui.settingsOpened;
-})();
 
 const pfDriver = getRawPlatformaInstance().pFrameDriver;
 const pFrame = computed(() => app.model.outputs.pFrame);
@@ -36,7 +25,7 @@ const settingsOpened = ref(true);
 
 const columnOptionsEvaluating = ref(false);
 const columnPlaceholder = computed(() =>
-  columnOptionsEvaluating.value ? 'Loading columns...' : 'Select the main column',
+  columnOptionsEvaluating.value ? "Loading columns..." : "Select the main column",
 );
 const columnOptions = computedAsync(
   async () => {
@@ -45,12 +34,12 @@ const columnOptions = computedAsync(
     return columns
       .filter(
         (idAndSpec) =>
-          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label'),
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === "pl7.app/label"),
       )
       .map((idAndSpec, i) => ({
         text:
-          idAndSpec.spec.annotations?.['pl7.app/label']?.trim()
-          ?? 'Unlabelled column ' + i.toString(),
+          idAndSpec.spec.annotations?.["pl7.app/label"]?.trim() ??
+          "Unlabelled column " + i.toString(),
         value: idAndSpec,
       }))
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
@@ -60,7 +49,7 @@ const columnOptions = computedAsync(
 );
 const columnSelected = ref<PColumnIdAndSpec>();
 const column = reactive({
-  label: 'Main column',
+  label: "Main column",
   placeholder: columnPlaceholder,
   options: columnOptions,
   selected: columnSelected,
@@ -68,19 +57,19 @@ const column = reactive({
 });
 
 const additionalPlaceholder = computed(() =>
-  !column.selected ? 'First, select the main column' : 'Select additional columns',
+  !column.selected ? "First, select the main column" : "Select additional columns",
 );
 const additionalOptions = computed(() => {
   return columnOptions.value.filter(
     (option) =>
-      !isJsonEqual(option.value.columnId, column.selected?.columnId)
-      && isJsonEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec),
+      !isJsonEqual(option.value.columnId, column.selected?.columnId) &&
+      isJsonEqual(option.value.spec.axesSpec, column.selected?.spec.axesSpec),
   );
 });
 const additionalSelected = ref<PColumnIdAndSpec[]>([]);
 const additionalDisabled = computed(() => !column.selected);
 const additional = reactive({
-  label: 'Additional columns',
+  label: "Additional columns",
   placeholder: additionalPlaceholder,
   options: additionalOptions,
   selected: additionalSelected,
@@ -90,10 +79,10 @@ const additional = reactive({
 const enrichmentEvaluating = ref(false);
 const enrichmentPlaceholder = computed(() =>
   !column.selected
-    ? 'First, select the main column'
+    ? "First, select the main column"
     : enrichmentEvaluating.value
-      ? 'Loading columns...'
-      : 'Select enrichment columns',
+      ? "Loading columns..."
+      : "Select enrichment columns",
 );
 const enrichmentOptions = computedAsync(
   async () => {
@@ -106,16 +95,16 @@ const enrichmentOptions = computedAsync(
     return response.hits
       .filter(
         (idAndSpec) =>
-          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === 'pl7.app/label')
-          && !isJsonEqual(idAndSpec.columnId, column.selected?.columnId)
-          && additional.options.findIndex((option) =>
+          !(idAndSpec.spec.axesSpec.length === 1 && idAndSpec.spec.name === "pl7.app/label") &&
+          !isJsonEqual(idAndSpec.columnId, column.selected?.columnId) &&
+          additional.options.findIndex((option) =>
             isJsonEqual(option.value.columnId, idAndSpec.columnId),
           ) === -1,
       )
       .map((idAndSpec, i) => ({
         text:
-          idAndSpec.spec.annotations?.['pl7.app/label']?.trim()
-          ?? 'Unlabelled column ' + i.toString(),
+          idAndSpec.spec.annotations?.["pl7.app/label"]?.trim() ??
+          "Unlabelled column " + i.toString(),
         value: idAndSpec,
       }))
       .sort((lhs, rhs) => lhs.text.localeCompare(rhs.text));
@@ -126,7 +115,7 @@ const enrichmentOptions = computedAsync(
 const enrichmentSelected = ref<PColumnIdAndSpec[]>([]);
 const enrichmentDisabled = computed(() => !column.selected && !enrichmentEvaluating.value);
 const enrichment = reactive({
-  label: 'Enrichment columns',
+  label: "Enrichment columns",
   placeholder: enrichmentPlaceholder,
   options: enrichmentOptions,
   selected: enrichmentSelected,
@@ -134,7 +123,7 @@ const enrichment = reactive({
 });
 
 watch(
-  () => app.model.ui.group,
+  () => app.model.data.group,
   (group) => {
     const state = [group.mainColumn, group.additionalColumns, group.enrichmentColumns] as const;
     const prevState = [
@@ -177,7 +166,7 @@ watch(
     const [_, prevColumn] = prevState;
 
     if (!isJsonEqual(column, prevColumn)) {
-      app.model.ui.group = {
+      app.model.data.group = {
         mainColumn: column,
         additionalColumns: [],
         enrichmentColumns: [],
@@ -210,14 +199,14 @@ watch(
       additionalColumns: additional,
       enrichmentColumns: enrichment,
     };
-    if (!isJsonEqual(group, app.model.ui.group)) {
-      app.model.ui.group = group;
+    if (!isJsonEqual(group, app.model.data.group)) {
+      app.model.data.group = group;
     }
   },
 );
 
 const tableSettings = usePlDataTableSettingsV2({
-  sourceId: () => columnSelected.value ? columnSelected.value.columnId : undefined,
+  sourceId: () => (columnSelected.value ? columnSelected.value.columnId : undefined),
   sheets: () => app.model.outputs.sheets,
   model: () => app.model.outputs.pTable,
 });
@@ -240,7 +229,7 @@ const tableSettings = usePlDataTableSettingsV2({
       </PlAlert>
     </Transition>
     <PlAgDataTableV2
-      v-model="app.model.ui.tableStateV2"
+      v-model="app.model.data.tableStateV2"
       :settings="tableSettings"
       show-export-button
     />

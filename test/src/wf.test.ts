@@ -1,8 +1,8 @@
-import { blockSpec } from 'this-block';
-import { blockTest } from '@platforma-sdk/test';
+import { TableBlockPointer as blockSpec } from "this-block";
+import { blockTest } from "@platforma-sdk/test";
 
-blockTest('Run template', async ({ rawPrj: project, ml, helpers }) => {
-  const blockId = await project.addBlock('Block', blockSpec);
+blockTest("Run template", { timeout: 30000 }, async ({ rawPrj: project, helpers }) => {
+  const blockId = await project.addBlock("Block", blockSpec);
   const overview = await project.overview.getValue();
   const blockOverview = overview?.blocks.find((b) => b.id === blockId)!;
   if (blockOverview.updatedBlockPack) {

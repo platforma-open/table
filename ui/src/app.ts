@@ -1,11 +1,11 @@
-import { model } from '@platforma-open/milaboratories.table.model';
-import { defineApp } from '@platforma-sdk/ui-vue';
-import TableView from './pages/TableView.vue';
+import { platforma } from "@platforma-open/milaboratories.table.model";
+import { defineAppV3 } from "@platforma-sdk/ui-vue";
+import TableView from "./pages/TableView.vue";
 
-export const sdkPlugin = defineApp(model, () => {
+export const sdkPlugin = defineAppV3(platforma, () => {
   return {
     routes: {
-      '/': () => TableView,
+      "/": () => TableView,
     },
   };
 });

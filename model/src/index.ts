@@ -1,42 +1,29 @@
 import {
-  BlockModel,
+  BlockModelV3,
+  ColumnRecipe,
   createPlDataTableSheet,
-  createPlDataTableStateV2,
-  createPlDataTableV2,
+  createPlDataTableV3,
   ensureError,
   getUniquePartitionKeys,
   isPColumn,
   type InferOutputsType,
+  type PColumn,
   type PColumnIdAndSpec,
-  type PlDataTableStateV2,
-} from '@platforma-sdk/model';
+  type TreeNodeAccessor,
+} from "@platforma-sdk/model";
+import { blockDataModel } from "./dataModel";
+import type { BlockArgs } from "./types";
 
-export type BlockArgs = Record<string, never>;
+export { blockDataModel } from "./dataModel";
+export * from "./types";
 
-export type UiState = {
-  group: {
-    mainColumn?: PColumnIdAndSpec;
-    additionalColumns: PColumnIdAndSpec[];
-    enrichmentColumns: PColumnIdAndSpec[];
-  };
-  tableStateV2: PlDataTableStateV2;
-};
-
-export const model = BlockModel.create()
-  .withArgs<BlockArgs>({})
-  .withUiState<UiState>({
-    group: {
-      mainColumn: undefined,
-      additionalColumns: [],
-      enrichmentColumns: [],
-    },
-    tableStateV2: createPlDataTableStateV2(),
-  })
-  .sections((_ctx) => [{ type: 'link', href: '/', label: 'View' }])
-  .output('pColumns', (ctx) => {
-    const columns = ctx.resultPool.getData().entries
-      .map(({ obj }) => obj)
-      .filter(isPColumn)
+export const platforma = BlockModelV3.create(blockDataModel)
+  .args<BlockArgs>(() => ({}))
+  .output("pColumns", (ctx) => {
+    const columns = ctx.resultPool
+      .getData()
+      .entries.map(({ obj }) => obj)
+      .filter((obj): obj is PColumn<TreeNodeAccessor> => isPColumn(obj))
       .map((column) => ({
         id: column.id,
         spec: column.spec,
@@ -45,13 +32,13 @@ export const model = BlockModel.create()
       }));
     return columns;
   })
-  .output('pFrame', (ctx) => {
+  .output("pFrame", (ctx) => {
     const collection = ctx.resultPool.getData();
     if (!collection.isComplete) return undefined;
 
     const columns = collection.entries
       .map(({ obj }) => obj)
-      .filter(isPColumn);
+      .filter((obj): obj is PColumn<TreeNodeAccessor> => isPColumn(obj));
     try {
       return ctx.createPFrame(columns);
     } catch (err: unknown) {
@@ -59,13 +46,14 @@ export const model = BlockModel.create()
       return undefined;
     }
   })
-  .output('sheets', (ctx) => {
-    const mainColumn = ctx.uiState?.group.mainColumn;
+  .output("sheets", (ctx) => {
+    const mainColumn = ctx.data.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    const column = ctx.resultPool.getData().entries
-      .map(({ obj }) => obj)
-      .filter(isPColumn)
+    const column = ctx.resultPool
+      .getData()
+      .entries.map(({ obj }) => obj)
+      .filter((obj): obj is PColumn<TreeNodeAccessor> => isPColumn(obj))
       .find((it) => it.id === mainColumn.columnId);
     if (!column) return undefined;
 
@@ -74,33 +62,32 @@ export const model = BlockModel.create()
 
     return r.map((values, i) => createPlDataTableSheet(ctx, column.spec.axesSpec[i], values));
   })
-  .output('pTable', (ctx) => {
-    const mainColumn = ctx.uiState?.group.mainColumn;
+  .outputWithStatus("pTable", (ctx) => {
+    const mainColumn = ctx.data.group.mainColumn;
     if (!mainColumn) return undefined;
 
-    const columns = ctx.resultPool.getData().entries
-      .map(({ obj }) => obj)
-      .filter(isPColumn);
+    // Build column recipes straight from the stored PObjectIds. A recipe factory
+    // returns undefined when the referenced column's spec is not resolvable in
+    // the active render ctx (e.g. still absent from the pool), which gives us the
+    // same "all selected columns must be present" gating the previous
+    // snapshot-collection did before rendering the table.
+    const toRecipe = (id: PColumnIdAndSpec) =>
+      ColumnRecipe(id.columnId as Parameters<typeof ColumnRecipe>[0]);
 
-    const primaryColumns = [mainColumn, ...ctx.uiState.group.additionalColumns]
-      .map((idAndSpec) => columns.find((column) => column.id === idAndSpec.columnId))
-      .filter((column) => column !== undefined);
-    if (primaryColumns.length < ctx.uiState.group.additionalColumns.length + 1) return undefined;
+    const primaryColumns = [mainColumn, ...ctx.data.group.additionalColumns].map(toRecipe);
+    if (primaryColumns.some((recipe) => recipe === undefined)) return undefined;
 
-    const secondaryColumns = ctx.uiState.group.enrichmentColumns
-      .map((idAndSpec) => columns.find((column) => column.id === idAndSpec.columnId))
-      .filter((column) => column !== undefined);
-    if (secondaryColumns.length < ctx.uiState.group.enrichmentColumns.length) return undefined;
+    const secondaryColumns = ctx.data.group.enrichmentColumns.map(toRecipe);
+    if (secondaryColumns.some((recipe) => recipe === undefined)) return undefined;
 
-    return createPlDataTableV2(
-      ctx,
-      [...primaryColumns, ...secondaryColumns],
-      ctx.uiState.tableStateV2,
-      {
-        coreColumnPredicate: ({ columnId }) => primaryColumns.some((column) => column.id === columnId),
-      },
-    );
+    return createPlDataTableV3(ctx, {
+      primaryColumns: primaryColumns as ColumnRecipe[],
+      columns: secondaryColumns as ColumnRecipe[],
+      tableState: ctx.data.tableStateV2,
+    });
   })
-  .done(2);
+  .sections(() => [{ type: "link" as const, href: "/" as const, label: "View" }])
+  .done();
 
-export type BlockOutputs = InferOutputsType<typeof model>;
+export type Platforma = typeof platforma;
+export type BlockOutputs = InferOutputsType<typeof platforma>;

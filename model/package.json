@@ -1,25 +1,39 @@
 {
   "name": "@platforma-open/milaboratories.table.model",
   "version": "1.1.2",
+  "private": true,
   "description": "Block model",
   "type": "module",
   "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "sources": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./dist/*": "./dist/*"
+  },
   "scripts": {
     "type-check": "ts-builder types --target block-model",
     "build": "ts-builder build --target block-model && block-tools build-model",
-    "lint": "eslint ."
+    "fmt": "ts-builder format",
+    "watch": "ts-builder build --target block-model --watch",
+    "check": "ts-builder check --target block-model"
   },
   "dependencies": {
+    "@milaboratories/helpers": "catalog:",
     "@platforma-sdk/model": "catalog:"
   },
   "devDependencies": {
     "@milaboratories/ts-builder": "catalog:",
     "@milaboratories/ts-configs": "catalog:",
     "@platforma-sdk/block-tools": "catalog:",
-    "@platforma-sdk/eslint-config": "catalog:",
-    "@types/node": "catalog:",
-    "eslint": "catalog:",
-    "typescript": "catalog:"
+    "eslint": "catalog:"
+  },
+  "peerDependencies": {
+    "@types/node": "*",
+    "typescript": "*"
   }
 }
