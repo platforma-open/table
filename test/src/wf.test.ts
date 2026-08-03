@@ -1,4 +1,4 @@
-import { blockSpec } from "this-block";
+import { TableBlockPointer as blockSpec } from "this-block";
 import { blockTest } from "@platforma-sdk/test";
 
 blockTest("Run template", { timeout: 30000 }, async ({ rawPrj: project, helpers }) => {
