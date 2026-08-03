@@ -1,7 +1,7 @@
 ---
-"@platforma-open/milaboratories.table": minor
-"@platforma-open/milaboratories.table.model": minor
-"@platforma-open/milaboratories.table.ui": minor
+"@platforma-open/milaboratories.table": patch
+"@platforma-open/milaboratories.table.model": patch
+"@platforma-open/milaboratories.table.ui": patch
 "@platforma-open/milaboratories.table.workflow": patch
 ---
 
