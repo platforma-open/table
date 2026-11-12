@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.table
 
+## 1.1.4
+
+### Patch Changes
+
+- dba250e: Point the block's repository link to the current GitHub repository.
+
 ## 1.1.3
 
 ### Patch Changes
