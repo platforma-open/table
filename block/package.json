@@ -44,7 +44,7 @@
     "meta": {
       "title": "Table",
       "logo": "file:../logos/block-logo.png",
-      "url": "https://github.com/milaboratory/block-table",
+      "url": "https://github.com/platforma-open/table",
       "docs": "https://github.com/milaboratory/block-table/docs",
       "support": "mailto:support@milaboratories.com",
       "description": "Table view for data from other blocks",
